@@ -207,6 +207,19 @@ class PipelineCompiler:
                     output_density=output.get("density", "density"),
                     groupby=list(st.pending_groupby or []),
                 )
+            elif "unnest" in transform:
+                # Deliberately rejected rather than approximated. Expanding a
+                # delimited column means multiplying rows, which SQL can do
+                # (UNNEST / a split-table join) but not identically across
+                # StarRocks and DuckDB without care — and a silently different
+                # row count would break parity with the Arquero executor, which
+                # is the reference semantics. Templates using unnest are
+                # browser-mode only until this is implemented properly.
+                raise UnsupportedQueryError(
+                    "'unnest' is not supported by the SQL backend yet; it is "
+                    "implemented only by the in-browser executor. Use interactive "
+                    "(browser) mode for templates that expand multi-value columns."
+                )
             else:
                 raise UnsupportedQueryError(
                     f"unsupported transformation: {sorted(transform.keys())}"
@@ -545,17 +558,25 @@ class PipelineCompiler:
         else:
             pairs = list(zip(on[0], on[1]))
 
+        # `left` keeps every row of the first table, nulling the second's columns
+        # where there was no match — the only way to express absence, which an
+        # inner join drops by construction.
+        kind = transform["join"].get("kind", "inner")
+        if kind not in ("inner", "left"):
+            raise UnsupportedQueryError(f"unsupported join kind '{kind}'")
+        join_kw = "LEFT JOIN" if kind == "left" else "JOIN"
+
         if all(a == b for a, b in pairs):
             # Same-name keys: USING merges and dedups the join columns —
             # matches Arquero, works on both DuckDB and StarRocks/MySQL.
             using = ", ".join(self._q(a) for a, _ in pairs)
-            sql = f"SELECT * FROM {left} l JOIN {right} r USING ({using})"
+            sql = f"SELECT * FROM {left} l {join_kw} {right} r USING ({using})"
         else:
             # ponytail: differently-named keys keep both columns; non-key
             # column collisions error in SQL instead of Arquero's _1/_2
             # suffixing. Add introspected column lists if that ever bites.
             cond = " AND ".join(f"l.{self._q(a)} = r.{self._q(b)}" for a, b in pairs)
-            sql = f"SELECT * FROM {left} l JOIN {right} r ON {cond}"
+            sql = f"SELECT * FROM {left} l {join_kw} {right} r ON {cond}"
         self._push(st, sql, out_name)
         st.pending_groupby = None
         st.order_by = None

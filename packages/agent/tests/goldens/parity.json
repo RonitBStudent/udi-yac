@@ -60,6 +60,194 @@
       }
     },
     {
+      "name": "rollup-max-nominal-conditional",
+      "spec": {
+        "source": {
+          "name": "penguins",
+          "source": "penguins.csv"
+        },
+        "transformation": [
+          {
+            "derive": {
+              "adelie island": {
+                "if": {
+                  "op": "==",
+                  "left": {
+                    "field": "species"
+                  },
+                  "right": {
+                    "literal": "Adelie"
+                  }
+                },
+                "then": {
+                  "field": "island"
+                },
+                "else": {
+                  "literal": null
+                }
+              }
+            }
+          },
+          {
+            "groupby": "species"
+          },
+          {
+            "rollup": {
+              "island": {
+                "op": "max",
+                "field": "adelie island"
+              }
+            }
+          }
+        ]
+      },
+      "selections": null,
+      "displayDataOnly": null,
+      "expect": {
+        "displayData": [
+          {
+            "species": "Adelie",
+            "island": "Torgersen"
+          },
+          {
+            "species": "Chinstrap"
+          },
+          {
+            "species": "Gentoo"
+          }
+        ],
+        "allData": [
+          {
+            "species": "Adelie",
+            "island": "Torgersen"
+          },
+          {
+            "species": "Chinstrap"
+          },
+          {
+            "species": "Gentoo"
+          }
+        ],
+        "isSubset": false
+      }
+    },
+    {
+      "name": "regroup-after-broadcast-derive",
+      "spec": {
+        "source": {
+          "name": "penguins",
+          "source": "penguins.csv"
+        },
+        "transformation": [
+          {
+            "filter": {
+              "op": "!=",
+              "left": {
+                "field": "body_mass_g"
+              },
+              "right": {
+                "literal": null
+              }
+            }
+          },
+          {
+            "groupby": "species"
+          },
+          {
+            "derive": {
+              "species max": {
+                "agg": "max",
+                "field": "body_mass_g"
+              }
+            }
+          },
+          {
+            "groupby": ["species", "island"]
+          },
+          {
+            "rollup": {
+              "hi": {
+                "op": "max",
+                "field": "species max"
+              },
+              "n": {
+                "op": "count"
+              }
+            }
+          }
+        ]
+      },
+      "selections": null,
+      "displayDataOnly": null,
+      "expect": {
+        "displayData": [
+          {
+            "species": "Adelie",
+            "island": "Torgersen",
+            "hi": 4775,
+            "n": 51
+          },
+          {
+            "species": "Adelie",
+            "island": "Biscoe",
+            "hi": 4775,
+            "n": 44
+          },
+          {
+            "species": "Adelie",
+            "island": "Dream",
+            "hi": 4775,
+            "n": 56
+          },
+          {
+            "species": "Chinstrap",
+            "island": "Dream",
+            "hi": 4800,
+            "n": 68
+          },
+          {
+            "species": "Gentoo",
+            "island": "Biscoe",
+            "hi": 6300,
+            "n": 123
+          }
+        ],
+        "allData": [
+          {
+            "species": "Adelie",
+            "island": "Torgersen",
+            "hi": 4775,
+            "n": 51
+          },
+          {
+            "species": "Adelie",
+            "island": "Biscoe",
+            "hi": 4775,
+            "n": 44
+          },
+          {
+            "species": "Adelie",
+            "island": "Dream",
+            "hi": 4775,
+            "n": 56
+          },
+          {
+            "species": "Chinstrap",
+            "island": "Dream",
+            "hi": 4800,
+            "n": 68
+          },
+          {
+            "species": "Gentoo",
+            "island": "Biscoe",
+            "hi": 6300,
+            "n": 123
+          }
+        ],
+        "isSubset": false
+      }
+    },
+    {
       "name": "rollup-numeric-aggs",
       "spec": {
         "source": {
@@ -909,6 +1097,137 @@
             "island": "Dream",
             "n": 124,
             "pct": 0.7380952380952381
+          }
+        ],
+        "isSubset": false
+      }
+    },
+    {
+      "name": "left-join-presence-marker",
+      "spec": {
+        "source": [
+          {
+            "name": "donors",
+            "source": "donors.csv"
+          },
+          {
+            "name": "samples",
+            "source": "samples.csv"
+          }
+        ],
+        "transformation": [
+          {
+            "filter": {
+              "op": "==",
+              "left": {
+                "field": "sample_category"
+              },
+              "right": {
+                "literal": "suspension"
+              }
+            },
+            "in": "samples",
+            "out": "samples"
+          },
+          {
+            "groupby": "donor.hubmap_id",
+            "in": "samples"
+          },
+          {
+            "rollup": {
+              "marker": {
+                "op": "count"
+              }
+            },
+            "in": "samples",
+            "out": "samples_by_donor"
+          },
+          {
+            "join": {
+              "on": ["hubmap_id", "donor.hubmap_id"],
+              "kind": "left"
+            },
+            "in": ["donors", "samples_by_donor"],
+            "out": "donors_p"
+          },
+          {
+            "derive": {
+              "group": {
+                "if": {
+                  "op": "!=",
+                  "left": {
+                    "field": "marker"
+                  },
+                  "right": {
+                    "literal": null
+                  }
+                },
+                "then": {
+                  "literal": "has samples"
+                },
+                "else": {
+                  "literal": "no samples"
+                }
+              }
+            }
+          },
+          {
+            "groupby": ["group", "sex"]
+          },
+          {
+            "rollup": {
+              "n": {
+                "op": "count"
+              }
+            }
+          }
+        ]
+      },
+      "selections": null,
+      "displayDataOnly": null,
+      "expect": {
+        "displayData": [
+          {
+            "group": "has samples",
+            "sex": "Female",
+            "n": 8
+          },
+          {
+            "group": "has samples",
+            "sex": "Male",
+            "n": 10
+          },
+          {
+            "group": "no samples",
+            "sex": "Male",
+            "n": 92
+          },
+          {
+            "group": "no samples",
+            "sex": "Female",
+            "n": 156
+          }
+        ],
+        "allData": [
+          {
+            "group": "has samples",
+            "sex": "Female",
+            "n": 8
+          },
+          {
+            "group": "has samples",
+            "sex": "Male",
+            "n": 10
+          },
+          {
+            "group": "no samples",
+            "sex": "Male",
+            "n": 92
+          },
+          {
+            "group": "no samples",
+            "sex": "Female",
+            "n": 156
           }
         ],
         "isSubset": false

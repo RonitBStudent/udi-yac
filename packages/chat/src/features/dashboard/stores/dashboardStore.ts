@@ -1,7 +1,7 @@
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { UDIGrammar } from 'udi-toolkit/react';
 import type { Layout, LayoutItem } from 'react-grid-layout';
-import type { Message } from '@/types/messages';
+import type { Message, TemplateParamDescriptor, ToolCallMeta } from '@/types/messages';
 import type { DataFiltersState } from './dataFiltersStore';
 import type { DataPackageState } from '@/features/data-package';
 import type { MemoryBankState } from './memoryBankStore';
@@ -42,12 +42,31 @@ export interface ActiveVisualization {
   titleTemplate?: string;
   summaryTemplate?: string;
   uuid: string;
+  /** Present when the agent built this spec from a template (see below). */
+  template?: TemplateProvenance;
+}
+
+/**
+ * How a generated spec came to be: the template and the bindings it was resolved
+ * with, plus the parameters the agent will accept a re-binding for.
+ *
+ * Carrying this is what lets a tweak re-resolve the template instead of rewriting
+ * the finished spec — the only approach that stays correct when a binding is
+ * referenced from transformations as well as encodings. `toolArgs` is kept
+ * current as the user tweaks, so successive changes compose from the last
+ * accepted set rather than from the original render.
+ */
+export interface TemplateProvenance {
+  tool: string;
+  toolArgs: Record<string, string>;
+  params: TemplateParamDescriptor[];
 }
 
 export interface ExtractedSpec {
   spec: object;
   toolCallIndex: number;
   title?: string;
+  template?: TemplateProvenance;
   titleTemplate?: string;
   summaryTemplate?: string;
 }
@@ -76,6 +95,8 @@ export interface DashboardExportVisualization {
   titleTemplate?: string;
   summaryTemplate?: string;
   spec: UDIGrammar;
+  /** Kept so a restored dashboard is as tweakable as a live one. */
+  template?: TemplateProvenance;
 }
 
 export interface DashboardExport {
@@ -108,6 +129,7 @@ export interface DashboardState {
     sourceFields: Record<string, string[]> | null,
     title?: string,
     text?: { titleTemplate?: string; summaryTemplate?: string },
+    template?: TemplateProvenance,
   ) => void;
   addActiveVisualizationBatch: (
     items: Array<{
@@ -117,6 +139,7 @@ export interface DashboardState {
       userPrompt: string;
       sourceFields: Record<string, string[]> | null;
       title?: string;
+      template?: TemplateProvenance;
       titleTemplate?: string;
       summaryTemplate?: string;
     }>,
@@ -145,6 +168,8 @@ export interface DashboardState {
     currentSourceName: string,
     dataFiltersStore: StoreApi<DataFiltersState>,
     dataPackageStore: StoreApi<DataPackageState>,
+    /** Every entity the spec reads; defaults to just `currentSourceName`. */
+    specSourceNames?: string[],
   ) => object[];
   getFilterIds: (dataFiltersStore: StoreApi<DataFiltersState>) => string[];
   updateActiveVisualizationSpec: (
@@ -152,6 +177,14 @@ export interface DashboardState {
     newSpec: UDIGrammar,
     sourceFields: Record<string, string[]> | null,
   ) => void;
+  applyTemplateRebind: (
+    key: string,
+    newSpec: UDIGrammar,
+    toolArgs: Record<string, string>,
+    params: TemplateParamDescriptor[] | undefined,
+    sourceFields: Record<string, string[]> | null,
+  ) => void;
+  clearTemplateProvenance: (key: string) => void;
   /** Rename a card. An empty/whitespace title clears the rename, handing the
    *  displayed title back to the built title. */
   setVisualizationTitle: (key: string, title: string) => void;
@@ -220,6 +253,14 @@ function getSpecSourceName(spec: UDIGrammar): string | undefined {
   const src = spec.source as SpecSourceLike | SpecSourceLike[] | undefined;
   if (!src) return undefined;
   return Array.isArray(src) ? src[0]?.name : src.name;
+}
+
+/** Every entity a spec reads, not just the one it is nominally "about". */
+function getSpecSourceNames(spec: UDIGrammar): string[] {
+  const src = spec.source as SpecSourceLike | SpecSourceLike[] | undefined;
+  if (!src) return [];
+  const list = Array.isArray(src) ? src : [src];
+  return list.map((s) => s?.name).filter((n): n is string => typeof n === 'string');
 }
 
 // Minimal shapes the spec-walking code relies on. The canonical UDIGrammar
@@ -324,26 +365,44 @@ export function injectInteractivity(
   return interactiveSpec;
 }
 
-function getRepresentedFields(spec: UDIGrammar): string[] {
+/**
+ * Fields that **every** layer encodes.
+ *
+ * Used to drop rows with missing values. The filters apply to the one dataset all
+ * layers share, so a field only qualifies if no layer could draw the row anyway.
+ * A layered spec routinely nulls a field out on purpose — that is how an
+ * annotation layer picks the rows it marks — and filtering on a field encoded by
+ * only some layers would delete those rows from the layers that do want them,
+ * taking the data with it. Vega-Lite already drops invalid values per layer, so
+ * what this pass skips is still handled downstream.
+ *
+ * For a single-layer spec (the common case) this is every encoded field.
+ */
+function getFieldsInEveryLayer(spec: UDIGrammar): string[] {
   if (!spec.representation) return [];
-  const fields = new Set<string>();
   const representations = Array.isArray(spec.representation)
     ? (spec.representation as SpecRepresentationLike[])
     : [spec.representation as SpecRepresentationLike];
-  for (const representation of representations) {
+
+  const perLayer: Set<string>[] = representations.map((representation) => {
     const rawMapping = representation.mapping;
     const mappings: SpecMappingLike[] = Array.isArray(rawMapping)
       ? rawMapping
       : rawMapping
         ? [rawMapping]
         : [];
+    const fields = new Set<string>();
     for (const mapping of mappings) {
       if (mapping && 'field' in mapping && mapping.field) {
         fields.add(mapping.field);
       }
     }
-  }
-  return Array.from(fields);
+    return fields;
+  });
+
+  const [first, ...rest] = perLayer;
+  if (!first) return [];
+  return [...first].filter((field) => rest.every((layer) => layer.has(field)));
 }
 
 export function createDashboardStore() {
@@ -360,7 +419,16 @@ export function createDashboardStore() {
 
     vizKey: (messageIndex, toolCallIndex) => `${messageIndex}-${toolCallIndex}`,
 
-    addActiveVisualization: (index, toolCallIndex, spec, userPrompt, sourceFields, title, text) => {
+    addActiveVisualization: (
+      index,
+      toolCallIndex,
+      spec,
+      userPrompt,
+      sourceFields,
+      title,
+      text,
+      template,
+    ) => {
       const uuid = generateId();
       const interactiveSpec = injectInteractivity(spec, uuid, sourceFields);
       const key = get().vizKey(index, toolCallIndex);
@@ -375,6 +443,7 @@ export function createDashboardStore() {
           title,
           ...text,
           uuid,
+          template,
         });
         return {
           activeVisualizations: next,
@@ -402,6 +471,7 @@ export function createDashboardStore() {
           userPrompt,
           sourceFields,
           title,
+          template,
           titleTemplate,
           summaryTemplate,
         } of items) {
@@ -419,6 +489,7 @@ export function createDashboardStore() {
             titleTemplate,
             summaryTemplate,
             uuid,
+            template,
           });
           const h = getDomainForField
             ? computeInitialCardHeight(spec, getDomainForField, state.gridRowHeight)
@@ -524,7 +595,13 @@ export function createDashboardStore() {
       return ids;
     },
 
-    getNamedFilters: (filterIdList, currentSourceName, dataFiltersStore, dataPackageStore) => {
+    getNamedFilters: (
+      filterIdList,
+      currentSourceName,
+      dataFiltersStore,
+      dataPackageStore,
+      specSourceNames = [currentSourceName],
+    ) => {
       const state = get();
       const uuidToSource = new Map<string, string>();
       for (const v of state.activeVisualizations.values()) {
@@ -547,21 +624,35 @@ export function createDashboardStore() {
         .map((id: string): object | null => {
           const originSourceName = getSourceName(id);
           if (!originSourceName) return null;
-          if (originSourceName !== currentSourceName) {
-            const er: EntityRelationship | null = dpState.getEntityRelationship(
-              originSourceName,
-              currentSourceName,
-            );
-            if (!er) return null;
+          // A spec can read several entities. When the selection is on one of
+          // them, filter THAT table — bridging it onto the primary entity instead
+          // would keep every row the surviving subjects have in the other table.
+          // Filtering a therapy protocol, say, would keep the subjects on it and
+          // then re-admit all their *other* protocols through the join.
+          //
+          // `in`/`out` are explicit on every filter so the pipeline position of
+          // one cannot change which table the next one lands on.
+          if (specSourceNames.includes(originSourceName)) {
             return {
-              filter: {
-                name: id,
-                source: originSourceName,
-                entityRelationship: er,
-              },
+              filter: { name: id },
+              in: originSourceName,
+              out: originSourceName,
             };
           }
-          return { filter: { name: id } };
+          const er: EntityRelationship | null = dpState.getEntityRelationship(
+            originSourceName,
+            currentSourceName,
+          );
+          if (!er) return null;
+          return {
+            filter: {
+              name: id,
+              source: originSourceName,
+              entityRelationship: er,
+            },
+            in: currentSourceName,
+            out: currentSourceName,
+          };
         })
         .filter((f): f is object => f !== null);
     },
@@ -599,12 +690,13 @@ export function createDashboardStore() {
           currentSourceName ?? 'unknown_source',
           dataFiltersStore,
           dataPackageStore,
+          getSpecSourceNames(viz.interactiveSpec),
         );
         const baseTrans = structuredClone(viz.spec.transformation ?? []) as object[];
         // Structured expression AST, not the legacy raw string form — the
         // remote query backend rejects raw Arquero strings by design.
         const nullFilters = state.filterAllNullValues
-          ? getRepresentedFields(viz.spec).map((field) => ({
+          ? getFieldsInEveryLayer(viz.spec).map((field) => ({
               filter: { op: '!=', left: { field }, right: { literal: null } },
             }))
           : [];
@@ -637,6 +729,51 @@ export function createDashboardStore() {
       set((state) => {
         const next = new Map(state.activeVisualizations);
         next.set(key, { ...viz, spec: newSpec, interactiveSpec });
+        return { activeVisualizations: next };
+      });
+    },
+
+    /**
+     * Replace a chart with a freshly instantiated one from the same template.
+     *
+     * Keeps the viz's uuid, so a live brush and every cross-filter keyed on it
+     * survive the swap, and merges the accepted bindings so the next tweak builds
+     * on this one. `params` comes back from the server and replaces the stored
+     * descriptors, which is what makes a template whose parameter set has changed
+     * self-correct on first use.
+     */
+    applyTemplateRebind: (key, newSpec, toolArgs, params, sourceFields) => {
+      const viz = get().activeVisualizations.get(key);
+      if (!viz || !viz.template) return;
+      const interactiveSpec = injectInteractivity(newSpec, viz.uuid, sourceFields);
+      set((state) => {
+        const next = new Map(state.activeVisualizations);
+        next.set(key, {
+          ...viz,
+          spec: newSpec,
+          interactiveSpec,
+          template: {
+            tool: viz.template!.tool,
+            toolArgs: { ...viz.template!.toolArgs, ...toolArgs },
+            params: params ?? viz.template!.params,
+          },
+        });
+        return { activeVisualizations: next };
+      });
+    },
+
+    /**
+     * Forget that a chart came from a template — used when the agent no longer
+     * recognises it, so the panel stops offering a control that cannot work.
+     */
+    clearTemplateProvenance: (key) => {
+      const viz = get().activeVisualizations.get(key);
+      if (!viz || !viz.template) return;
+      set((state) => {
+        const next = new Map(state.activeVisualizations);
+        const rest = { ...viz };
+        delete rest.template;
+        next.set(key, rest);
         return { activeVisualizations: next };
       });
     },
@@ -774,6 +911,7 @@ export function createDashboardStore() {
           titleTemplate: viz.titleTemplate,
           summaryTemplate: viz.summaryTemplate,
           spec: structuredClone(viz.spec),
+          template: viz.template ? structuredClone(viz.template) : undefined,
         });
       }
       return {
@@ -798,6 +936,7 @@ export function createDashboardStore() {
           titleTemplate: v.titleTemplate,
           summaryTemplate: v.summaryTemplate,
           uuid,
+          template: v.template,
         });
       }
       const knownKeys = new Set(next.keys());
@@ -831,9 +970,15 @@ export function createDashboardStore() {
 export function normalizeToolCalls(message: Message) {
   if (!message.tool_calls) return [];
   return message.tool_calls.map((call, index) => {
+    // `meta` rides along: it is the only record of which template produced a
+    // spec, and the tweak panel needs it to re-bind rather than rewrite.
     const normalized = call.function
-      ? { name: call.function.name, arguments: call.function.arguments }
-      : { name: call.name!, arguments: call.arguments! };
+      ? {
+          name: call.function.name,
+          arguments: call.function.arguments,
+          meta: call.function.meta,
+        }
+      : { name: call.name!, arguments: call.arguments!, meta: call.meta };
     return { ...normalized, originalIndex: index };
   });
 }
@@ -854,6 +999,35 @@ export function parseSpecFromToolCall(toolCall: {
   return null;
 }
 
+/**
+ * Read template provenance off a tool call's `meta`, or nothing if it isn't
+ * trustworthy.
+ *
+ * The agent already withholds `tweakable_params` when the spec it delivered is no
+ * longer exactly its template's instantiation (a correction pass replaces it), so
+ * this is a shape check on top of that decision — older agents send no `meta` at
+ * all, and an imported session can carry anything.
+ */
+export function parseTemplateProvenance(
+  meta: ToolCallMeta | undefined,
+): TemplateProvenance | undefined {
+  if (!meta) return undefined;
+  const { tool_used: tool, tool_args: toolArgs, tweakable_params: params } = meta;
+  if (typeof tool !== 'string' || tool.length === 0) return undefined;
+  if (!toolArgs || typeof toolArgs !== 'object') return undefined;
+  if (!Array.isArray(params) || params.length === 0) return undefined;
+  const wellFormed = params.every(
+    (p): p is TemplateParamDescriptor =>
+      !!p &&
+      typeof p === 'object' &&
+      typeof p.param === 'string' &&
+      typeof p.value === 'string' &&
+      typeof p.label === 'string',
+  );
+  if (!wellFormed) return undefined;
+  return { tool, toolArgs: toolArgs as Record<string, string>, params };
+}
+
 export function extractAllUdiSpecsFromMessage(message: Message): ExtractedSpec[] {
   if (message.role !== 'assistant' || !message.tool_calls?.length) return [];
   const results: ExtractedSpec[] = [];
@@ -870,6 +1044,7 @@ export function extractAllUdiSpecsFromMessage(message: Message): ExtractedSpec[]
         title: str(call.arguments?.title),
         titleTemplate: str(call.arguments?.titleTemplate),
         summaryTemplate: str(call.arguments?.summaryTemplate),
+        template: parseTemplateProvenance(call.meta),
       });
     }
   }

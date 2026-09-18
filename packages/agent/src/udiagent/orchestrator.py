@@ -287,6 +287,7 @@ class Orchestrator:
             self.grammar,
             usage=usage,
             openai_api_key=openai_api_key,
+            data_domains=data_domains,
             model=model,
         )
 

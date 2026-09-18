@@ -105,25 +105,40 @@ def _profile_table(name: str, header: list[str], rows: list[list[str]]) -> dict:
 
 
 def _infer_foreign_keys(resources: list[dict]) -> None:
-    """Link tables on shared columns that are unique in exactly one table.
+    """Link tables on shared columns that are unique in at least one table.
 
-    single-column keys only; the lone table where a shared column is
-    unique is treated as the parent (many->one). Ambiguous (0 or >1 unique)
-    columns are left unlinked — declare those FKs by hand in the JSON.
+    Single-column keys only; a table where the shared column is unique can serve
+    as the parent (many->one). A column unique in NO table is left unlinked —
+    declare those by hand.
+
+    When the column is unique in SEVERAL tables the widest key space wins (most
+    distinct values, then name order to stay deterministic). Two one-row-per-key
+    tables are genuinely ambiguous in direction, but the covering side is the
+    safer parent, and refusing to choose is worse than choosing: it used to drop
+    the column entirely, taking with it the unambiguous links from every *other*
+    table. Pruning pcx's demographics table to its cohort did exactly that —
+    `research_id` became unique in Demographics as well as Patient, and all five
+    of the package's foreign keys silently disappeared.
     """
     cols_by_table = {r["name"]: {f["name"] for f in r["schema"]["fields"]} for r in resources}
     unique_cols = {
         r["name"]: {f["name"] for f in r["schema"]["fields"] if f["udi:unique"]}
         for r in resources
     }
+    # Distinct-value counts per (table, column), for the tiebreak below.
+    cardinality = {
+        (r["name"], f["name"]): f["udi:cardinality"]
+        for r in resources
+        for f in r["schema"]["fields"]
+    }
     shared = {c for a in cols_by_table.values() for c in a}
     shared = {c for c in shared if sum(c in cols for cols in cols_by_table.values()) >= 2}
 
     for col in sorted(shared):
         parents = [name for name, u in unique_cols.items() if col in u]
-        if len(parents) != 1:
+        if not parents:
             continue
-        parent = parents[0]
+        parent = max(parents, key=lambda name: (cardinality[(name, col)], name))
         for r in resources:
             if r["name"] == parent or col not in cols_by_table[r["name"]]:
                 continue
@@ -136,7 +151,36 @@ def _infer_foreign_keys(resources: list[dict]) -> None:
             )
 
 
-def build_package(csv_dir: Path, name: str, udi_path: str, strips: list[str]) -> dict:
+def _annotate_cube(res: dict, measure: str) -> None:
+    """Mark a resource as a pre-aggregated marginal cube.
+
+    A cube row is a count (or other measure) over whichever dimensions are
+    non-null; a null dimension means the row aggregates over it, so the same
+    table holds the grand total, every one-way marginal, and every combination.
+    Consumers need to know which column is the measure and which are dimensions
+    — it cannot be inferred, since a dimension is just a nullable column — so it
+    is declared here and read back through the schema by the `<M>` and
+    `<MARGINAL:...>` placeholders.
+    """
+    names = [f["name"] for f in res["schema"]["fields"]]
+    if measure not in names:
+        sys.exit(f"{res['name']}: --measure {measure!r} is not a column (has: {', '.join(names)})")
+    res["udi:cube"] = True
+    res["udi:measures"] = [measure]
+    res["udi:dimensions"] = [n for n in names if n != measure]
+    for field in res["schema"]["fields"]:
+        if field["name"] == measure:
+            field["description"] = "Cube measure: the aggregated value for this row."
+        else:
+            field["description"] = (
+                f"Cube dimension: {field['name']}. Null when the row aggregates "
+                "over this dimension."
+            )
+
+
+def build_package(
+    csv_dir: Path, name: str, udi_path: str, strips: list[str], measure: str | None = None
+) -> dict:
     resources = []
     for path in sorted(csv_dir.glob("*.csv")):
         with path.open(newline="", encoding="utf-8") as fh:
@@ -146,6 +190,8 @@ def build_package(csv_dir: Path, name: str, udi_path: str, strips: list[str]) ->
         # name is the entity key (FK refs, source resolver, agent specs) — must be unique
         res = _profile_table(humanize(path.stem, strips), header, rows)
         res["path"] = path.name
+        if measure:
+            _annotate_cube(res, measure)
         resources.append(res)
 
     if not resources:
@@ -155,7 +201,8 @@ def build_package(csv_dir: Path, name: str, udi_path: str, strips: list[str]) ->
     if len(set(names)) != len(names):
         sys.exit(f"table names collide after humanizing: {names} — adjust --strip")
 
-    _infer_foreign_keys(resources)
+    if not measure:
+        _infer_foreign_keys(resources)
     return {
         "name": name,
         "resources": resources,
@@ -197,6 +244,26 @@ def _selftest() -> None:
             "udi:cardinality": {"from": "many", "to": "one"},
         }
     ], child["schema"]["foreignKeys"]
+
+    # Two tables in which the key is unique, plus a third where it is not: the
+    # wider key space is the parent, and the narrow unique table becomes a child
+    # of it rather than the whole column being abandoned. This is the pcx shape —
+    # Patient (69 ids) / Demographics (65) / Event (many rows per id) — and it
+    # regressed to zero foreign keys when the ambiguity was treated as fatal.
+    wide = prof("id,x\n1,a\n2,b\n3,c\n", "wide")
+    narrow = prof("id,y\n1,q\n2,r\n", "narrow")
+    many = prof("id,z\n1,m\n1,n\n2,o\n", "many")
+    _infer_foreign_keys([narrow, wide, many])
+    assert wide["schema"]["foreignKeys"] == [], wide["schema"]["foreignKeys"]
+    for table in (narrow, many):
+        assert table["schema"]["foreignKeys"] == [
+            {
+                "fields": ["id"],
+                "reference": {"fields": ["id"], "resource": "wide"},
+                "udi:cardinality": {"from": "many", "to": "one"},
+            }
+        ], (table["name"], table["schema"]["foreignKeys"])
+
     print("selftest OK")
 
 
@@ -216,6 +283,12 @@ def main() -> None:
         help="substring to remove from file names before humanizing table names "
         "(repeatable), e.g. --strip pcx_30_ --strip _level_deid",
     )
+    ap.add_argument(
+        "--measure",
+        help="treat the directory as a pre-aggregated marginal CUBE: this column is "
+        "the measure, every other column a dimension (null = aggregated over). "
+        "Skips foreign-key inference, which is meaningless for a cube.",
+    )
     ap.add_argument("-o", "--out", help="output path (default: <dir>/datapackage.json)")
     ap.add_argument("--selftest", action="store_true", help="run inference self-check and exit")
     args = ap.parse_args()
@@ -231,7 +304,7 @@ def main() -> None:
     udi_path = args.udi_path or f"./data/{csv_dir.name}/"
     out = Path(args.out) if args.out else csv_dir / "datapackage.json"
 
-    pkg = build_package(csv_dir, name, udi_path, args.strip)
+    pkg = build_package(csv_dir, name, udi_path, args.strip, args.measure)
     out.write_text(json.dumps(pkg, indent=2) + "\n", encoding="utf-8")
 
     fks = sum(len(r["schema"]["foreignKeys"]) for r in pkg["resources"])

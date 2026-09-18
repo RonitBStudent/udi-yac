@@ -15,6 +15,8 @@ import pprint
 import re
 from pathlib import Path
 
+from udiagent.vis_generate import PLACEHOLDER
+
 
 # ---------------------------------------------------------------------------
 # Schema parsing
@@ -40,7 +42,7 @@ def parse_schema(schema_path: str) -> dict:
 
 def _extract_placeholders(template_str: str) -> set[str]:
     """Extract all <placeholder> names from a template string."""
-    return set(re.findall(r'<([^>]+)>', template_str))
+    return set(re.findall(PLACEHOLDER, template_str))
 
 
 def _derive_tool_name(template: dict, index: int) -> str:
@@ -49,6 +51,14 @@ def _derive_tool_name(template: dict, index: int) -> str:
     desc = template.get("description", "").lower()
 
     suffixes = []
+
+    # An explicit name from the template author wins. The derivation below is a
+    # convenience, not a contract: it reads keywords out of prose written for the
+    # model, so a description that has to name a sibling template ("prefer the
+    # baseline variant when...") would otherwise inherit that sibling's suffix.
+    hint = (template.get("name_hint") or "").strip()
+    if hint:
+        return re.sub(r"[^a-z0-9_]", "", f"vis_{index:03d}_{chart_type}_{hint}".lower())
 
     # Detect join/cross-entity
     if "join" in desc or "related entity" in desc:
@@ -77,6 +87,8 @@ def _derive_tool_name(template: dict, index: int) -> str:
         suffixes.append("normalized")
     if "color" in desc or "colored" in desc:
         suffixes.append("by_color")
+    if "survival" in desc:
+        suffixes.append("survival")
     if "cumulative" in desc or "cdf" in desc:
         suffixes.append("cdf")
     if "density" in desc or "kde" in desc:
@@ -168,8 +180,8 @@ def _extract_encoding_info(spec_template: str) -> dict[str, dict]:
             # ("average <F1>", "<E> count"). Both bind that placeholder to
             # this encoding; `aggregated` records which kind it was, because
             # the encoding's own display label already carries the operator.
-            bare = re.fullmatch(r'<([^>]+)>', field)
-            found = [bare.group(1)] if bare else re.findall(r'<([^>]+)>', field)
+            bare = re.fullmatch(PLACEHOLDER, field)
+            found = [bare.group(1)] if bare else re.findall(PLACEHOLDER, field)
             for ph in found:
                 base = ph.split(":")[0] if ":" in ph else ph
                 if base not in info:
@@ -304,25 +316,39 @@ def _generate_single_entity_tool(
     for ph in sorted(placeholders):
         if ph in ("E", "E.url"):
             continue
-        m = re.match(r'(F\d*|D\d*)', ph)
+        m = re.match(r'(F\d*|D\d*|V\d*)', ph)
         if not m:
             continue
-        base = m.group(1)  # F, F1, F2, F3 or D, D1, D2, D3
+        base = m.group(1)  # F, F1..F4 / D, D1..D3 / V, V1..V3
         param_name = {
-            "F": "field", "F1": "field1", "F2": "field2", "F3": "field3",
+            "F": "field", "F1": "field1", "F2": "field2", "F3": "field3", "F4": "field4",
             "D": "dimension", "D1": "dimension1", "D2": "dimension2", "D3": "dimension3",
+            "V": "value", "V1": "value1", "V2": "value2", "V3": "value3",
         }.get(base)
         if not param_name or param_name in seen:
             continue
         seen.add(param_name)
 
         field_type = _get_field_type_for_placeholder(ph)
-        description = _build_field_description(field_type, encoding_info.get(base))
+        # Deliberately NOT named `description`: that holds the *tool* description
+        # built above, and shadowing it here used to leak the last parameter's
+        # blurb ("any type field.") out as the tool's own description — leaving
+        # every single-entity tool with nothing for the model to select on.
+        param_description = _build_field_description(field_type, encoding_info.get(base))
         if base.startswith("D"):
-            description = "cube " + description.replace("field", "dimension", 1)
+            param_description = "cube " + param_description.replace("field", "dimension", 1)
+        elif base.startswith("V"):
+            # <V*> is a literal data value, not a column. Say so explicitly: the
+            # obvious failure is the model passing a column name here, which would
+            # make the comparison it feeds match nothing.
+            param_description = (
+                "A literal data VALUE to match (not a column name) — one of the "
+                "values actually present in the relevant column, copied exactly, "
+                "including case and spacing."
+            )
         properties[param_name] = {
             "type": "string",
-            "description": description,
+            "description": param_description,
         }
         required.append(param_name)
         param_map[param_name] = base
@@ -363,26 +389,53 @@ def _generate_join_entity_tool(
     description = _build_tool_description(template)
     encoding_info = _extract_encoding_info(spec_template)
 
-    properties = {
-        "entity1": {"type": "string", "description": "The primary data entity (table)."},
-        "entity2": {"type": "string", "description": "The secondary data entity (table) to join with."},
+    # One entity parameter per numbered entity the template actually mentions,
+    # rather than a fixed pair: a template can bring in a third table (crossing
+    # membership of two of them), and a `<E3>` with no parameter behind it would
+    # resolve to an empty table name instead of failing.
+    entity_keys = sorted(
+        {ph.split(".")[0] for ph in placeholders if re.fullmatch(r"E\d+(\..*)?", ph)}
+    )
+    entity_descriptions = {
+        "E1": "The primary data entity (table).",
+        "E2": "The secondary data entity (table) to join with.",
     }
-    required = ["entity1", "entity2"]
-    param_map = {"entity1": "E1", "entity2": "E2"}
+    properties = {}
+    required = []
+    param_map = {}
+    for key in entity_keys:
+        param = f"entity{key[1:]}"
+        properties[param] = {
+            "type": "string",
+            "description": entity_descriptions.get(
+                key, f"An additional data entity (table) to join with ({param})."
+            ),
+        }
+        required.append(param)
+        param_map[param] = key
+
+    skip = {"E1.r.E2.id.from", "E1.r.E2.id.to"}
+    skip.update(entity_keys)
+    skip.update(f"{key}.url" for key in entity_keys)
 
     seen = set()
     for ph in sorted(placeholders):
-        if ph in ("E1", "E1.url", "E2", "E2.url", "E1.r.E2.id.from", "E1.r.E2.id.to"):
+        if ph in skip:
             continue
 
-        if ph.startswith("E1.F"):
-            param_name = "entity1_field"
-            m = re.match(r'E1\.(F\d*)', ph)
-            base = "E1." + m.group(1) if m else "E1.F"
-        elif ph.startswith("E2.F"):
-            param_name = "entity2_field"
-            m = re.match(r'E2\.(F\d*)', ph)
-            base = "E2." + m.group(1) if m else "E2.F"
+        # One parameter per *numbered* field, so a template can take several from
+        # the same side of a join. Collapsing every `E1.F*` onto one name would
+        # keep only the first and leave the rest unbound — which resolves to an
+        # empty field name rather than an error.
+        m = re.match(r'(E\d+)\.(F\d*)', ph)
+        if m:
+            param_name = f"entity{m.group(1)[1:]}_field{m.group(2)[1:]}"
+            base = f"{m.group(1)}.{m.group(2)}"
+        elif re.match(r'V\d*$', ph.split(":")[0]):
+            # A join template can need literal values too — a survival curve
+            # stratified across tables still has to name its start and end events.
+            base = ph.split(":")[0]
+            param_name = "value" + base[1:]
         else:
             continue
 
@@ -390,11 +443,18 @@ def _generate_join_entity_tool(
             continue
         seen.add(param_name)
 
-        field_type = _get_field_type_for_placeholder(ph)
-        properties[param_name] = {
-            "type": "string",
-            "description": _build_field_description(field_type, encoding_info.get(base)),
-        }
+        if base.startswith("V"):
+            param_description = (
+                "A literal data VALUE to match (not a column name) — one of the "
+                "values actually present in the relevant column, copied exactly, "
+                "including case and spacing."
+            )
+        else:
+            field_type = _get_field_type_for_placeholder(ph)
+            param_description = _build_field_description(
+                field_type, encoding_info.get(base)
+            )
+        properties[param_name] = {"type": "string", "description": param_description}
         required.append(param_name)
         param_map[param_name] = base
 
@@ -458,7 +518,8 @@ def generate(template_sources, output_path: str):
         for template in templates:
             spec_template = template.get("spec_template", "")
             placeholders = _extract_placeholders(spec_template)
-            is_join = "E1" in placeholders or "E2" in placeholders
+            # Any numbered entity means more than one table, whatever the count.
+            is_join = any(re.fullmatch(r"E\d+", ph) for ph in placeholders)
 
             if is_join:
                 tool_def, param_map = _generate_join_entity_tool(template, counter)

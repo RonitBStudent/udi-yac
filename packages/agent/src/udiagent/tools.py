@@ -140,9 +140,23 @@ ORCHESTRATOR_TOOLS = [
                 "Create a data visualization. Supports: bar charts (vertical/horizontal, "
                 "with count/min/max/avg/median/sum aggregations), stacked and grouped bar "
                 "charts, scatterplots, heatmaps, histograms, CDF line charts, pie/donut "
-                "charts, dot strips, density curves, and data tables. Can visualize a "
-                "single entity or join two related entities. The specific visualization "
-                "type will be automatically selected based on the data and request."
+                "charts, dot strips, density curves, and data tables. Also supports "
+                "survival curves — requests for 'survival', 'Kaplan-Meier' or 'KM' plots — "
+                "computed from an event-log table (one row per event, with a subject id, an "
+                "event-type column and a numeric time column) by pairing a start event with "
+                "an end event per subject. These also need a censoring source — a subject-level "
+                "table with a status column and the date that status was current, plus the "
+                "value meaning 'no event yet' (e.g. 'alive') — which places subjects who "
+                "never had the event at the time their follow-up stopped and ticks each one. "
+                "They can optionally be split into one curve per "
+                "category — either by the value the subject had at the start event (the "
+                "default, which partitions the cohort) or by every value it ever recorded "
+                "(which overlaps) — including per value of a delimited multi-value column, "
+                "by a field in another table, or by whether the subject appears in one or "
+                "two other tables at all (e.g. treated vs untreated). Can "
+                "visualize a single entity or join two related entities. The specific "
+                "visualization type will be automatically selected based on the data and "
+                "request."
             ),
             "parameters": {
                 "type": "object",
@@ -220,7 +234,13 @@ ORCHESTRATOR_TOOLS = [
 
 
 def function_call_render_visualization(
-    agent, messages, data_schema, grammar, usage=None, openai_api_key=None,
+    agent,
+    messages,
+    data_schema,
+    grammar,
+    usage=None,
+    openai_api_key=None,
+    data_domains=None,
     model=None,
 ):
     """Visualization generation via the skills pipeline."""
@@ -234,6 +254,7 @@ def function_call_render_visualization(
         grammar=grammar,
         usage=usage,
         openai_api_key=openai_api_key,
+        data_domains=data_domains,
         model=model,
     )
     arguments = {"spec": result["spec"]}

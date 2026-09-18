@@ -235,6 +235,13 @@ def test_all_templates_pass_mapping_validation():
         "entities": {
             "donors": {"url": "donors.tsv"},
             "samples": {"url": "samples.tsv"},
+            # A third table, for the templates that cross membership of two of
+            # them. Without a binding for it `<E3>` resolves to an empty source
+            # name, which is the failure this used to report.
+            "datasets": {"url": "datasets.tsv"},
+            # A fourth table, for the template that crosses membership of two
+            # tables AND takes a censoring source — four entities in one spec.
+            "cohort": {"url": "cohort.tsv"},
         },
         "relationships": [
             {
@@ -248,9 +255,11 @@ def test_all_templates_pass_mapping_validation():
     fields = {
         "donors": {"hubmap_id", "age_value", "sex"},
         "samples": {"donor.hubmap_id", "age_value", "sex"},
+        "datasets": {"donor.hubmap_id", "age_value", "sex"},
+        "cohort": {"donor.hubmap_id", "age_value", "sex"},
     }
     bindings = {
-        "E": "donors", "E1": "samples", "E2": "donors",
+        "E": "donors", "E1": "samples", "E2": "donors", "E3": "datasets", "E4": "cohort",
         "F": "age_value", "F1": "age_value", "F2": "sex",
     }
     failures = []
