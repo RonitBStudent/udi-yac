@@ -2,7 +2,7 @@
 Auto-generated visualization tool definitions.
 
 Generated from: src/udiagent/data/skills/template_visualizations.json
-Tools: 74
+Tools: 76
 
 Schema-independent: tool params are free-form strings resolved against the
 per-request data schema at runtime (see vis_generate._execute_generate).
@@ -321,17 +321,18 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  '"min", "field": "start day"}, "end day": {"op": "max", "field": "end day"}, "censor day": {"op": "max", "field": '
  '"censor day"}, "<E1.F4>": {"op": "max", "field": "baseline stratum"}}}, {"filter": {"op": "!=", "left": {"field": '
  '"start day"}, "right": {"literal": null}}}, {"filter": {"op": "!=", "left": {"field": "<E1.F4>"}, "right": '
- '{"literal": null}}}, {"derive": {"died": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": '
- 'null}}, "then": {"literal": 1}, "else": {"literal": 0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end '
- 'day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "end day"}, "right": {"field": "start '
- 'day"}}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"op": '
- '"-", "left": {"field": "censor day"}, "right": {"field": "start day"}}, "else": {"literal": 0}}}}}, {"filter": '
- '{"op": ">=", "left": {"field": "survival days"}, "right": {"literal": 0}}}, {"derive": {"survival years": {"op": '
- '"/", "left": {"field": "survival days"}, "right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": {"op": '
- '"!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": null}, "else": {"if": {"op": '
- '"!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"field": "survival years"}, "else": '
- '{"literal": null}}}}}, {"derive": {"cohort end": {"agg": "max", "field": "survival years"}}}, {"groupby": '
- '"<E1.F4>"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": "sum", "field": "died"}}}, {"orderby": '
+ '{"literal": null}}}, {"derive": {"stratum": "<GROUP:E1.F4>"}}, {"filter": {"op": "!=", "left": {"field": "stratum"}, '
+ '"right": {"literal": null}}}, {"derive": {"died": {"if": {"op": "!=", "left": {"field": "end day"}, "right": '
+ '{"literal": null}}, "then": {"literal": 1}, "else": {"literal": 0}}, "survival days": {"if": {"op": "!=", "left": '
+ '{"field": "end day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "end day"}, "right": '
+ '{"field": "start day"}}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": null}}, '
+ '"then": {"op": "-", "left": {"field": "censor day"}, "right": {"field": "start day"}}, "else": {"literal": 0}}}}}, '
+ '{"filter": {"op": ">=", "left": {"field": "survival days"}, "right": {"literal": 0}}}, {"derive": {"survival years": '
+ '{"op": "/", "left": {"field": "survival days"}, "right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": '
+ '{"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": null}, "else": {"if": '
+ '{"op": "!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"field": "survival years"}, '
+ '"else": {"literal": null}}}}}, {"derive": {"cohort end": {"agg": "max", "field": "survival years"}}}, {"groupby": '
+ '"stratum"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": "sum", "field": "died"}}}, {"orderby": '
  '{"field": ["survival years", "<E1.F1>"], "order": "asc"}}, {"derive": {"survival percentage": {"rolling": '
  '{"expression": {"op": "*", "left": {"op": "-", "left": {"literal": 1}, "right": {"op": "/", "left": {"agg": "sum", '
  '"field": "died"}, "right": {"field": "subjects"}}}, "right": {"literal": 100}}}}}}, {"derive": {"final percentage": '
@@ -353,29 +354,29 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  'null}}}}}}, {"derive": {"_label_offset": {"op": "+", "left": {"field": "final percentage"}, "right": {"literal": '
  '0.5}}}}, {"derive": {"final survival": {"op": "-", "left": {"field": "_label_offset"}, "right": {"op": "%", "left": '
  '{"field": "_label_offset"}, "right": {"literal": 1}}}}}, {"derive": {"survivors": {"op": "-", "left": {"field": '
- '"subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": {"concat": [{"field": "<E1.F4>"}, '
+ '"subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": {"concat": [{"field": "stratum"}, '
  '{"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, {"field": "subjects"}, {"literal": ") '
  '"}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": [{"mark": "line", "mapping": [{"encoding": '
  '"x", "field": "lead year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
  '"y", "field": "full survival", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
- '"field": "<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
  '"field": "drop year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", '
  '"field": "drop percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
- '"field": "<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
  '"field": "survival years", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
  '"y", "field": "survival percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival '
- '(%)"}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}], "interpolate": '
+ '(%)"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}], "interpolate": '
  '"step-after"}, {"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": '
  '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", '
- '"domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
  'true}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": '
  '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", '
  '"domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, '
- '{"encoding": "size", "value": 500}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": '
+ '{"encoding": "size", "value": 500}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
  'true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label year", "type": "quantitative", "title": '
  '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", '
  '"domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": '
- '"color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", '
+ '"color", "field": "stratum", "type": "nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", '
  '"strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": "<E1.F4>", "align": "right"}}',
  '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}], "transformation": '
  '[{"derive": {"censor day": {"if": {"op": "==", "left": {"field": "<E2.F2:n>"}, "right": {"literal": "<V3>"}}, '
@@ -391,17 +392,18 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  '"min", "field": "start day"}, "end day": {"op": "max", "field": "end day"}, "censor day": {"op": "max", "field": '
  '"censor day"}, "<E1.F4>": {"op": "max", "field": "baseline stratum"}}}, {"filter": {"op": "!=", "left": {"field": '
  '"start day"}, "right": {"literal": null}}}, {"filter": {"op": "!=", "left": {"field": "<E1.F4>"}, "right": '
- '{"literal": null}}}, {"unnest": {"field": "<E1.F4>", "separator": ";"}}, {"derive": {"died": {"if": {"op": "!=", '
- '"left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": 1}, "else": {"literal": 0}}, '
- '"survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"op": "-", '
- '"left": {"field": "end day"}, "right": {"field": "start day"}}, "else": {"if": {"op": "!=", "left": {"field": '
+ '{"literal": null}}}, {"unnest": {"field": "<E1.F4>", "separator": ";"}}, {"derive": {"stratum": "<GROUP:E1.F4>"}}, '
+ '{"filter": {"op": "!=", "left": {"field": "stratum"}, "right": {"literal": null}}}, {"derive": {"died": {"if": '
+ '{"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": 1}, "else": {"literal": '
+ '0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"op": '
+ '"-", "left": {"field": "end day"}, "right": {"field": "start day"}}, "else": {"if": {"op": "!=", "left": {"field": '
  '"censor day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "censor day"}, "right": {"field": '
  '"start day"}}, "else": {"literal": 0}}}}}, {"filter": {"op": ">=", "left": {"field": "survival days"}, "right": '
  '{"literal": 0}}}, {"derive": {"survival years": {"op": "/", "left": {"field": "survival days"}, "right": {"literal": '
  '365.25}}}}, {"derive": {"censor year": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": '
  'null}}, "then": {"literal": null}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": '
  'null}}, "then": {"field": "survival years"}, "else": {"literal": null}}}}}, {"derive": {"cohort end": {"agg": "max", '
- '"field": "survival years"}}}, {"groupby": "<E1.F4>"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": '
+ '"field": "survival years"}}}, {"groupby": "stratum"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": '
  '"sum", "field": "died"}}}, {"orderby": {"field": ["survival years", "<E1.F1>"], "order": "asc"}}, {"derive": '
  '{"survival percentage": {"rolling": {"expression": {"op": "*", "left": {"op": "-", "left": {"literal": 1}, "right": '
  '{"op": "/", "left": {"agg": "sum", "field": "died"}, "right": {"field": "subjects"}}}, "right": {"literal": '
@@ -424,28 +426,28 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  'percentage"}, "right": {"literal": 0.5}}}}, {"derive": {"final survival": {"op": "-", "left": {"field": '
  '"_label_offset"}, "right": {"op": "%", "left": {"field": "_label_offset"}, "right": {"literal": 1}}}}}, {"derive": '
  '{"survivors": {"op": "-", "left": {"field": "subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": '
- '{"concat": [{"field": "<E1.F4>"}, {"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, '
+ '{"concat": [{"field": "stratum"}, {"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, '
  '{"field": "subjects"}, {"literal": ") "}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": '
  '[{"mark": "line", "mapping": [{"encoding": "x", "field": "lead year", "type": "quantitative", "title": "survival '
  'years", "domain": {"min": 0}}, {"encoding": "y", "field": "full survival", "type": "quantitative", "domain": {"min": '
- '0, "max": 100}}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": '
+ '0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": '
  '"line", "mapping": [{"encoding": "x", "field": "drop year", "type": "quantitative", "title": "survival years", '
  '"domain": {"min": 0}}, {"encoding": "y", "field": "drop percentage", "type": "quantitative", "domain": {"min": 0, '
- '"max": 100}}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "line", '
+ '"max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", '
  '"mapping": [{"encoding": "x", "field": "survival years", "type": "quantitative", "title": "survival years", '
  '"domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", "domain": {"min": '
- '0, "max": 100}, "title": "survival (%)"}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": '
+ '0, "max": 100}, "title": "survival (%)"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
  'true}], "interpolate": "step-after"}, {"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": '
  '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", '
- '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "<E1.F4>", "type": '
+ '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": '
  '"nominal", "omitLegend": true}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": '
  '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", '
  '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": '
  '"M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", "value": 500}, {"encoding": "color", "field": '
- '"<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label '
+ '"stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label '
  'year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final '
  'percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", '
- '"type": "nominal"}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}], "align": '
+ '"type": "nominal"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}], "align": '
  '"right", "dy": -9, "stroke": "white", "strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": '
  '"<E1.F4>", "align": "right"}}',
  '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}], "transformation": '
@@ -459,25 +461,26 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  '"left": {"field": "<E1.F2>"}, "right": {"literal": "<V2>"}}, "then": {"field": "<E1.F3>"}, "else": {"literal": '
  'null}}}}, {"groupby": "<E1.F1:n>"}, {"derive": {"subject start": {"agg": "min", "field": "start day"}, "subject '
  'end": {"agg": "max", "field": "end day"}}}, {"filter": {"op": "!=", "left": {"field": "<E1.F4:n>"}, "right": '
- '{"literal": null}}}, {"groupby": ["<E1.F1>", "<E1.F4:n>"]}, {"rollup": {"start day": {"op": "min", "field": "subject '
- 'start"}, "end day": {"op": "max", "field": "subject end"}, "censor day": {"op": "max", "field": "censor day"}}}, '
- '{"filter": {"op": "!=", "left": {"field": "start day"}, "right": {"literal": null}}}, {"derive": {"died": {"if": '
- '{"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": 1}, "else": {"literal": '
- '0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"op": '
- '"-", "left": {"field": "end day"}, "right": {"field": "start day"}}, "else": {"if": {"op": "!=", "left": {"field": '
- '"censor day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "censor day"}, "right": {"field": '
- '"start day"}}, "else": {"literal": 0}}}}}, {"filter": {"op": ">=", "left": {"field": "survival days"}, "right": '
- '{"literal": 0}}}, {"derive": {"survival years": {"op": "/", "left": {"field": "survival days"}, "right": {"literal": '
- '365.25}}}}, {"derive": {"censor year": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": '
- 'null}}, "then": {"literal": null}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": '
- 'null}}, "then": {"field": "survival years"}, "else": {"literal": null}}}}}, {"derive": {"cohort end": {"agg": "max", '
- '"field": "survival years"}}}, {"groupby": "<E1.F4>"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": '
- '"sum", "field": "died"}}}, {"orderby": {"field": ["survival years", "<E1.F1>"], "order": "asc"}}, {"derive": '
- '{"survival percentage": {"rolling": {"expression": {"op": "*", "left": {"op": "-", "left": {"literal": 1}, "right": '
- '{"op": "/", "left": {"agg": "sum", "field": "died"}, "right": {"field": "subjects"}}}, "right": {"literal": '
- '100}}}}}}, {"derive": {"final percentage": {"agg": "min", "field": "survival percentage"}}}, {"derive": {"label '
- 'year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"if": {"op": ">", "left": '
- '{"field": "deaths"}, "right": {"literal": 0}}, "then": {"op": "*", "left": {"field": "cohort end"}, "right": '
+ '{"literal": null}}}, {"derive": {"stratum": "<GROUP:E1.F4>"}}, {"filter": {"op": "!=", "left": {"field": "stratum"}, '
+ '"right": {"literal": null}}}, {"groupby": ["<E1.F1>", "stratum"]}, {"rollup": {"start day": {"op": "min", "field": '
+ '"subject start"}, "end day": {"op": "max", "field": "subject end"}, "censor day": {"op": "max", "field": "censor '
+ 'day"}}}, {"filter": {"op": "!=", "left": {"field": "start day"}, "right": {"literal": null}}}, {"derive": {"died": '
+ '{"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": 1}, "else": '
+ '{"literal": 0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, '
+ '"then": {"op": "-", "left": {"field": "end day"}, "right": {"field": "start day"}}, "else": {"if": {"op": "!=", '
+ '"left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "censor day"}, '
+ '"right": {"field": "start day"}}, "else": {"literal": 0}}}}}, {"filter": {"op": ">=", "left": {"field": "survival '
+ 'days"}, "right": {"literal": 0}}}, {"derive": {"survival years": {"op": "/", "left": {"field": "survival days"}, '
+ '"right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": {"op": "!=", "left": {"field": "end day"}, '
+ '"right": {"literal": null}}, "then": {"literal": null}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, '
+ '"right": {"literal": null}}, "then": {"field": "survival years"}, "else": {"literal": null}}}}}, {"derive": {"cohort '
+ 'end": {"agg": "max", "field": "survival years"}}}, {"groupby": "stratum"}, {"derive": {"subjects": {"agg": "count"}, '
+ '"deaths": {"agg": "sum", "field": "died"}}}, {"orderby": {"field": ["survival years", "<E1.F1>"], "order": "asc"}}, '
+ '{"derive": {"survival percentage": {"rolling": {"expression": {"op": "*", "left": {"op": "-", "left": {"literal": '
+ '1}, "right": {"op": "/", "left": {"agg": "sum", "field": "died"}, "right": {"field": "subjects"}}}, "right": '
+ '{"literal": 100}}}}}}, {"derive": {"final percentage": {"agg": "min", "field": "survival percentage"}}}, {"derive": '
+ '{"label year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"if": {"op": ">", '
+ '"left": {"field": "deaths"}, "right": {"literal": 0}}, "then": {"op": "*", "left": {"field": "cohort end"}, "right": '
  '{"literal": 1.05}}, "else": {"literal": null}}, "else": {"literal": null}}}}, {"derive": {"full survival": '
  '{"literal": 100}}}, {"derive": {"first year": {"agg": "min", "field": "survival years"}}}, {"derive": {"first '
  'percentage": {"agg": "max", "field": "survival percentage"}}}, {"derive": {"lead year": {"if": {"op": "==", "left": '
@@ -494,28 +497,28 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  'percentage"}, "right": {"literal": 0.5}}}}, {"derive": {"final survival": {"op": "-", "left": {"field": '
  '"_label_offset"}, "right": {"op": "%", "left": {"field": "_label_offset"}, "right": {"literal": 1}}}}}, {"derive": '
  '{"survivors": {"op": "-", "left": {"field": "subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": '
- '{"concat": [{"field": "<E1.F4>"}, {"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, '
+ '{"concat": [{"field": "stratum"}, {"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, '
  '{"field": "subjects"}, {"literal": ") "}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": '
  '[{"mark": "line", "mapping": [{"encoding": "x", "field": "lead year", "type": "quantitative", "title": "survival '
  'years", "domain": {"min": 0}}, {"encoding": "y", "field": "full survival", "type": "quantitative", "domain": {"min": '
- '0, "max": 100}}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": '
+ '0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": '
  '"line", "mapping": [{"encoding": "x", "field": "drop year", "type": "quantitative", "title": "survival years", '
  '"domain": {"min": 0}}, {"encoding": "y", "field": "drop percentage", "type": "quantitative", "domain": {"min": 0, '
- '"max": 100}}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "line", '
+ '"max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", '
  '"mapping": [{"encoding": "x", "field": "survival years", "type": "quantitative", "title": "survival years", '
  '"domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", "domain": {"min": '
- '0, "max": 100}, "title": "survival (%)"}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": '
+ '0, "max": 100}, "title": "survival (%)"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
  'true}], "interpolate": "step-after"}, {"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": '
  '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", '
- '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "<E1.F4>", "type": '
+ '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": '
  '"nominal", "omitLegend": true}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": '
  '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", '
  '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": '
  '"M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", "value": 500}, {"encoding": "color", "field": '
- '"<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label '
+ '"stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label '
  'year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final '
  'percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", '
- '"type": "nominal"}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}], "align": '
+ '"type": "nominal"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}], "align": '
  '"right", "dy": -9, "stroke": "white", "strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": '
  '"<E1.F4>", "align": "right"}}',
  '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}], "transformation": '
@@ -529,65 +532,66 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  'null}}, "end day": {"if": {"op": "==", "left": {"field": "<E1.F2>"}, "right": {"literal": "<V2>"}}, "then": '
  '{"field": "<E1.F3>"}, "else": {"literal": null}}}}, {"groupby": "<E1.F1:n>"}, {"derive": {"subject start": {"agg": '
  '"min", "field": "start day"}, "subject end": {"agg": "max", "field": "end day"}}}, {"filter": {"op": "!=", "left": '
- '{"field": "<E1.F4:n>"}, "right": {"literal": null}}}, {"groupby": ["<E1.F1>", "<E1.F4:n>"]}, {"rollup": {"start '
- 'day": {"op": "min", "field": "subject start"}, "end day": {"op": "max", "field": "subject end"}, "censor day": '
- '{"op": "max", "field": "censor day"}}}, {"filter": {"op": "!=", "left": {"field": "start day"}, "right": {"literal": '
- 'null}}}, {"derive": {"died": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": '
- '{"literal": 1}, "else": {"literal": 0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": '
- '{"literal": null}}, "then": {"op": "-", "left": {"field": "end day"}, "right": {"field": "start day"}}, "else": '
- '{"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"op": "-", "left": '
- '{"field": "censor day"}, "right": {"field": "start day"}}, "else": {"literal": 0}}}}}, {"filter": {"op": ">=", '
- '"left": {"field": "survival days"}, "right": {"literal": 0}}}, {"derive": {"survival years": {"op": "/", "left": '
- '{"field": "survival days"}, "right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": {"op": "!=", "left": '
- '{"field": "end day"}, "right": {"literal": null}}, "then": {"literal": null}, "else": {"if": {"op": "!=", "left": '
- '{"field": "censor day"}, "right": {"literal": null}}, "then": {"field": "survival years"}, "else": {"literal": '
- 'null}}}}}, {"derive": {"cohort end": {"agg": "max", "field": "survival years"}}}, {"groupby": "<E1.F4>"}, {"derive": '
- '{"subjects": {"agg": "count"}, "deaths": {"agg": "sum", "field": "died"}}}, {"orderby": {"field": ["survival years", '
- '"<E1.F1>"], "order": "asc"}}, {"derive": {"survival percentage": {"rolling": {"expression": {"op": "*", "left": '
- '{"op": "-", "left": {"literal": 1}, "right": {"op": "/", "left": {"agg": "sum", "field": "died"}, "right": {"field": '
- '"subjects"}}}, "right": {"literal": 100}}}}}}, {"derive": {"final percentage": {"agg": "min", "field": "survival '
- 'percentage"}}}, {"derive": {"label year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, '
- '"then": {"if": {"op": ">", "left": {"field": "deaths"}, "right": {"literal": 0}}, "then": {"op": "*", "left": '
- '{"field": "cohort end"}, "right": {"literal": 1.05}}, "else": {"literal": null}}, "else": {"literal": null}}}}, '
- '{"derive": {"full survival": {"literal": 100}}}, {"derive": {"first year": {"agg": "min", "field": "survival '
- 'years"}}}, {"derive": {"first percentage": {"agg": "max", "field": "survival percentage"}}}, {"derive": {"lead '
- 'year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"literal": 0}, "else": '
- '{"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": {"field": "first year"}, "else": '
- '{"literal": null}}}, "drop year": {"if": {"op": "<=", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": '
- '{"field": "first year"}, "else": {"literal": null}}, "drop percentage": {"if": {"op": "==", "left": {"window": '
- '"rank"}, "right": {"literal": 1}}, "then": {"field": "full survival"}, "else": {"if": {"op": "==", "left": '
- '{"window": "rank"}, "right": {"literal": 2}}, "then": {"field": "first percentage"}, "else": {"literal": null}}}}}, '
- '{"derive": {"rule year": {"if": {"op": "==", "left": {"field": "deaths"}, "right": {"literal": 0}}, "then": '
- '{"literal": null}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": '
- '{"field": "label year"}, "else": {"if": {"op": "==", "left": {"field": "survival percentage"}, "right": {"field": '
- '"final percentage"}}, "then": {"field": "survival years"}, "else": {"literal": null}}}}}}, {"derive": '
- '{"_label_offset": {"op": "+", "left": {"field": "final percentage"}, "right": {"literal": 0.5}}}}, {"derive": '
- '{"final survival": {"op": "-", "left": {"field": "_label_offset"}, "right": {"op": "%", "left": {"field": '
- '"_label_offset"}, "right": {"literal": 1}}}}}, {"derive": {"survivors": {"op": "-", "left": {"field": "subjects"}, '
- '"right": {"field": "deaths"}}}}, {"derive": {"final label": {"concat": [{"field": "<E1.F4>"}, {"literal": " "}, '
- '{"literal": "("}, {"field": "survivors"}, {"literal": "/"}, {"field": "subjects"}, {"literal": ") "}, {"field": '
- '"final survival"}, {"literal": "%"}]}}}], "representation": [{"mark": "line", "mapping": [{"encoding": "x", "field": '
- '"lead year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": '
- '"full survival", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": '
- '"<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": "drop '
- 'year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "drop '
- 'percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "<E1.F4>", '
- '"type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": "survival years", '
- '"type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival '
- 'percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival (%)"}, {"encoding": '
- '"color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}], "interpolate": "step-after"}, {"mark": "line", '
- '"mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": "survival years", "domain": '
- '{"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": {"min": 0, "max": '
- '100}}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "point", '
- '"mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": "survival years", "domain": '
- '{"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", "domain": {"min": 0, "max": '
- '100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", "value": '
- '500}, {"encoding": "color", "field": "<E1.F4>", "type": "nominal", "omitLegend": true}]}, {"mark": "text", '
- '"mapping": [{"encoding": "x", "field": "label year", "type": "quantitative", "title": "survival years", "domain": '
- '{"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": {"min": 0, "max": '
- '100}}, {"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": "color", "field": "<E1.F4>", '
- '"type": "nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", "strokeWidth": 3, '
- '"strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": "<E1.F4>", "align": "right"}}',
+ '{"field": "<E1.F4:n>"}, "right": {"literal": null}}}, {"derive": {"stratum": "<GROUP:E1.F4>"}}, {"filter": {"op": '
+ '"!=", "left": {"field": "stratum"}, "right": {"literal": null}}}, {"groupby": ["<E1.F1>", "stratum"]}, {"rollup": '
+ '{"start day": {"op": "min", "field": "subject start"}, "end day": {"op": "max", "field": "subject end"}, "censor '
+ 'day": {"op": "max", "field": "censor day"}}}, {"filter": {"op": "!=", "left": {"field": "start day"}, "right": '
+ '{"literal": null}}}, {"derive": {"died": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": '
+ 'null}}, "then": {"literal": 1}, "else": {"literal": 0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end '
+ 'day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "end day"}, "right": {"field": "start '
+ 'day"}}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"op": '
+ '"-", "left": {"field": "censor day"}, "right": {"field": "start day"}}, "else": {"literal": 0}}}}}, {"filter": '
+ '{"op": ">=", "left": {"field": "survival days"}, "right": {"literal": 0}}}, {"derive": {"survival years": {"op": '
+ '"/", "left": {"field": "survival days"}, "right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": {"op": '
+ '"!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": null}, "else": {"if": {"op": '
+ '"!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"field": "survival years"}, "else": '
+ '{"literal": null}}}}}, {"derive": {"cohort end": {"agg": "max", "field": "survival years"}}}, {"groupby": '
+ '"stratum"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": "sum", "field": "died"}}}, {"orderby": '
+ '{"field": ["survival years", "<E1.F1>"], "order": "asc"}}, {"derive": {"survival percentage": {"rolling": '
+ '{"expression": {"op": "*", "left": {"op": "-", "left": {"literal": 1}, "right": {"op": "/", "left": {"agg": "sum", '
+ '"field": "died"}, "right": {"field": "subjects"}}}, "right": {"literal": 100}}}}}}, {"derive": {"final percentage": '
+ '{"agg": "min", "field": "survival percentage"}}}, {"derive": {"label year": {"if": {"op": "==", "left": {"window": '
+ '"rank"}, "right": {"literal": 1}}, "then": {"if": {"op": ">", "left": {"field": "deaths"}, "right": {"literal": 0}}, '
+ '"then": {"op": "*", "left": {"field": "cohort end"}, "right": {"literal": 1.05}}, "else": {"literal": null}}, '
+ '"else": {"literal": null}}}}, {"derive": {"full survival": {"literal": 100}}}, {"derive": {"first year": {"agg": '
+ '"min", "field": "survival years"}}}, {"derive": {"first percentage": {"agg": "max", "field": "survival '
+ 'percentage"}}}, {"derive": {"lead year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, '
+ '"then": {"literal": 0}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": '
+ '{"field": "first year"}, "else": {"literal": null}}}, "drop year": {"if": {"op": "<=", "left": {"window": "rank"}, '
+ '"right": {"literal": 2}}, "then": {"field": "first year"}, "else": {"literal": null}}, "drop percentage": {"if": '
+ '{"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"field": "full survival"}, "else": '
+ '{"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": {"field": "first percentage"}, '
+ '"else": {"literal": null}}}}}, {"derive": {"rule year": {"if": {"op": "==", "left": {"field": "deaths"}, "right": '
+ '{"literal": 0}}, "then": {"literal": null}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": '
+ '{"literal": 1}}, "then": {"field": "label year"}, "else": {"if": {"op": "==", "left": {"field": "survival '
+ 'percentage"}, "right": {"field": "final percentage"}}, "then": {"field": "survival years"}, "else": {"literal": '
+ 'null}}}}}}, {"derive": {"_label_offset": {"op": "+", "left": {"field": "final percentage"}, "right": {"literal": '
+ '0.5}}}}, {"derive": {"final survival": {"op": "-", "left": {"field": "_label_offset"}, "right": {"op": "%", "left": '
+ '{"field": "_label_offset"}, "right": {"literal": 1}}}}}, {"derive": {"survivors": {"op": "-", "left": {"field": '
+ '"subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": {"concat": [{"field": "stratum"}, '
+ '{"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, {"field": "subjects"}, {"literal": ") '
+ '"}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": [{"mark": "line", "mapping": [{"encoding": '
+ '"x", "field": "lead year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
+ '"y", "field": "full survival", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
+ '"field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "drop year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", '
+ '"field": "drop percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
+ '"field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "survival years", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
+ '"y", "field": "survival percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival '
+ '(%)"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}], "interpolate": '
+ '"step-after"}, {"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
+ 'true}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, '
+ '{"encoding": "size", "value": 500}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
+ 'true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": '
+ '"color", "field": "stratum", "type": "nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", '
+ '"strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": "<E1.F4>", "align": "right"}}',
  '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}, {"name": "<E3>", '
  '"source": "<E3.url>"}], "transformation": [{"join": {"on": ["<E1.F1>", "<E2.F1:n>"]}, "in": ["<E1>", "<E2>"], "out": '
  '"<E1>__<E2>"}, {"derive": {"censor day": {"if": {"op": "==", "left": {"field": "<E3.F2:n>"}, "right": {"literal": '
@@ -600,25 +604,26 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  '"left": {"field": "<E1.F2>"}, "right": {"literal": "<V2>"}}, "then": {"field": "<E1.F3>"}, "else": {"literal": '
  'null}}}}, {"groupby": "<E1.F1:n>"}, {"derive": {"subject start": {"agg": "min", "field": "start day"}, "subject '
  'end": {"agg": "max", "field": "end day"}}}, {"filter": {"op": "!=", "left": {"field": "<E2.F:n>"}, "right": '
- '{"literal": null}}}, {"groupby": ["<E1.F1>", "<E2.F:n>"]}, {"rollup": {"start day": {"op": "min", "field": "subject '
- 'start"}, "end day": {"op": "max", "field": "subject end"}, "censor day": {"op": "max", "field": "censor day"}}}, '
- '{"filter": {"op": "!=", "left": {"field": "start day"}, "right": {"literal": null}}}, {"derive": {"died": {"if": '
- '{"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": 1}, "else": {"literal": '
- '0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"op": '
- '"-", "left": {"field": "end day"}, "right": {"field": "start day"}}, "else": {"if": {"op": "!=", "left": {"field": '
- '"censor day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "censor day"}, "right": {"field": '
- '"start day"}}, "else": {"literal": 0}}}}}, {"filter": {"op": ">=", "left": {"field": "survival days"}, "right": '
- '{"literal": 0}}}, {"derive": {"survival years": {"op": "/", "left": {"field": "survival days"}, "right": {"literal": '
- '365.25}}}}, {"derive": {"censor year": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": '
- 'null}}, "then": {"literal": null}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": '
- 'null}}, "then": {"field": "survival years"}, "else": {"literal": null}}}}}, {"derive": {"cohort end": {"agg": "max", '
- '"field": "survival years"}}}, {"groupby": "<E2.F>"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": '
- '"sum", "field": "died"}}}, {"orderby": {"field": ["survival years", "<E1.F1>"], "order": "asc"}}, {"derive": '
- '{"survival percentage": {"rolling": {"expression": {"op": "*", "left": {"op": "-", "left": {"literal": 1}, "right": '
- '{"op": "/", "left": {"agg": "sum", "field": "died"}, "right": {"field": "subjects"}}}, "right": {"literal": '
- '100}}}}}}, {"derive": {"final percentage": {"agg": "min", "field": "survival percentage"}}}, {"derive": {"label '
- 'year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"if": {"op": ">", "left": '
- '{"field": "deaths"}, "right": {"literal": 0}}, "then": {"op": "*", "left": {"field": "cohort end"}, "right": '
+ '{"literal": null}}}, {"derive": {"stratum": "<GROUP:E2.F>"}}, {"filter": {"op": "!=", "left": {"field": "stratum"}, '
+ '"right": {"literal": null}}}, {"groupby": ["<E1.F1>", "stratum"]}, {"rollup": {"start day": {"op": "min", "field": '
+ '"subject start"}, "end day": {"op": "max", "field": "subject end"}, "censor day": {"op": "max", "field": "censor '
+ 'day"}}}, {"filter": {"op": "!=", "left": {"field": "start day"}, "right": {"literal": null}}}, {"derive": {"died": '
+ '{"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": 1}, "else": '
+ '{"literal": 0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, '
+ '"then": {"op": "-", "left": {"field": "end day"}, "right": {"field": "start day"}}, "else": {"if": {"op": "!=", '
+ '"left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "censor day"}, '
+ '"right": {"field": "start day"}}, "else": {"literal": 0}}}}}, {"filter": {"op": ">=", "left": {"field": "survival '
+ 'days"}, "right": {"literal": 0}}}, {"derive": {"survival years": {"op": "/", "left": {"field": "survival days"}, '
+ '"right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": {"op": "!=", "left": {"field": "end day"}, '
+ '"right": {"literal": null}}, "then": {"literal": null}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, '
+ '"right": {"literal": null}}, "then": {"field": "survival years"}, "else": {"literal": null}}}}}, {"derive": {"cohort '
+ 'end": {"agg": "max", "field": "survival years"}}}, {"groupby": "stratum"}, {"derive": {"subjects": {"agg": "count"}, '
+ '"deaths": {"agg": "sum", "field": "died"}}}, {"orderby": {"field": ["survival years", "<E1.F1>"], "order": "asc"}}, '
+ '{"derive": {"survival percentage": {"rolling": {"expression": {"op": "*", "left": {"op": "-", "left": {"literal": '
+ '1}, "right": {"op": "/", "left": {"agg": "sum", "field": "died"}, "right": {"field": "subjects"}}}, "right": '
+ '{"literal": 100}}}}}}, {"derive": {"final percentage": {"agg": "min", "field": "survival percentage"}}}, {"derive": '
+ '{"label year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"if": {"op": ">", '
+ '"left": {"field": "deaths"}, "right": {"literal": 0}}, "then": {"op": "*", "left": {"field": "cohort end"}, "right": '
  '{"literal": 1.05}}, "else": {"literal": null}}, "else": {"literal": null}}}}, {"derive": {"full survival": '
  '{"literal": 100}}}, {"derive": {"first year": {"agg": "min", "field": "survival years"}}}, {"derive": {"first '
  'percentage": {"agg": "max", "field": "survival percentage"}}}, {"derive": {"lead year": {"if": {"op": "==", "left": '
@@ -635,28 +640,100 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  'percentage"}, "right": {"literal": 0.5}}}}, {"derive": {"final survival": {"op": "-", "left": {"field": '
  '"_label_offset"}, "right": {"op": "%", "left": {"field": "_label_offset"}, "right": {"literal": 1}}}}}, {"derive": '
  '{"survivors": {"op": "-", "left": {"field": "subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": '
- '{"concat": [{"field": "<E2.F>"}, {"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, '
+ '{"concat": [{"field": "stratum"}, {"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, '
  '{"field": "subjects"}, {"literal": ") "}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": '
  '[{"mark": "line", "mapping": [{"encoding": "x", "field": "lead year", "type": "quantitative", "title": "survival '
  'years", "domain": {"min": 0}}, {"encoding": "y", "field": "full survival", "type": "quantitative", "domain": {"min": '
- '0, "max": 100}}, {"encoding": "color", "field": "<E2.F>", "type": "nominal", "omitLegend": true}]}, {"mark": "line", '
- '"mapping": [{"encoding": "x", "field": "drop year", "type": "quantitative", "title": "survival years", "domain": '
- '{"min": 0}}, {"encoding": "y", "field": "drop percentage", "type": "quantitative", "domain": {"min": 0, "max": '
- '100}}, {"encoding": "color", "field": "<E2.F>", "type": "nominal", "omitLegend": true}]}, {"mark": "line", '
+ '0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": '
+ '"line", "mapping": [{"encoding": "x", "field": "drop year", "type": "quantitative", "title": "survival years", '
+ '"domain": {"min": 0}}, {"encoding": "y", "field": "drop percentage", "type": "quantitative", "domain": {"min": 0, '
+ '"max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", '
  '"mapping": [{"encoding": "x", "field": "survival years", "type": "quantitative", "title": "survival years", '
  '"domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", "domain": {"min": '
- '0, "max": 100}, "title": "survival (%)"}, {"encoding": "color", "field": "<E2.F>", "type": "nominal", "omitLegend": '
+ '0, "max": 100}, "title": "survival (%)"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
  'true}], "interpolate": "step-after"}, {"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": '
  '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", '
- '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "<E2.F>", "type": '
+ '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": '
  '"nominal", "omitLegend": true}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": '
  '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", '
  '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": '
  '"M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", "value": 500}, {"encoding": "color", "field": '
- '"<E2.F>", "type": "nominal", "omitLegend": true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label '
+ '"stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label '
  'year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final '
  'percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", '
- '"type": "nominal"}, {"encoding": "color", "field": "<E2.F>", "type": "nominal", "omitLegend": true}], "align": '
+ '"type": "nominal"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}], "align": '
+ '"right", "dy": -9, "stroke": "white", "strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": '
+ '"<E2.F>", "align": "right"}}',
+ '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}, {"name": "<E3>", '
+ '"source": "<E3.url>"}], "transformation": [{"join": {"on": ["<E1.F1>", "<E2.F1:n>"]}, "in": ["<E1>", "<E2>"], "out": '
+ '"<E1>__<E2>"}, {"derive": {"censor day": {"if": {"op": "==", "left": {"field": "<E3.F2:n>"}, "right": {"literal": '
+ '"<V3>"}}, "then": {"field": "<E3.F3:q>"}, "else": {"literal": null}}}, "in": "<E3>", "out": "<E3>__c"}, {"groupby": '
+ '"<E3.F1:n>", "in": "<E3>__c"}, {"rollup": {"censor day": {"op": "max", "field": "censor day"}}, "in": "<E3>__c", '
+ '"out": "<E3>__by_subject"}, {"join": {"on": ["<E1.F1>", "<E3.F1>"], "kind": "left"}, "in": ["<E1>__<E2>", '
+ '"<E3>__by_subject"], "out": "<E1>__cens"}, {"filter": {"op": "!=", "left": {"field": "<E1.F3:q>"}, "right": '
+ '{"literal": null}}}, {"derive": {"start day": {"if": {"op": "==", "left": {"field": "<E1.F2:n>"}, "right": '
+ '{"literal": "<V1>"}}, "then": {"field": "<E1.F3>"}, "else": {"literal": null}}, "end day": {"if": {"op": "==", '
+ '"left": {"field": "<E1.F2>"}, "right": {"literal": "<V2>"}}, "then": {"field": "<E1.F3>"}, "else": {"literal": '
+ 'null}}}}, {"groupby": "<E1.F1:n>"}, {"derive": {"subject start": {"agg": "min", "field": "start day"}, "subject '
+ 'end": {"agg": "max", "field": "end day"}}}, {"filter": {"op": "!=", "left": {"field": "<E2.F:q>"}, "right": '
+ '{"literal": null}}}, {"derive": {"stratum": "<GROUP:E2.F>"}}, {"filter": {"op": "!=", "left": {"field": "stratum"}, '
+ '"right": {"literal": null}}}, {"groupby": ["<E1.F1>", "stratum"]}, {"rollup": {"start day": {"op": "min", "field": '
+ '"subject start"}, "end day": {"op": "max", "field": "subject end"}, "censor day": {"op": "max", "field": "censor '
+ 'day"}}}, {"filter": {"op": "!=", "left": {"field": "start day"}, "right": {"literal": null}}}, {"derive": {"died": '
+ '{"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": 1}, "else": '
+ '{"literal": 0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, '
+ '"then": {"op": "-", "left": {"field": "end day"}, "right": {"field": "start day"}}, "else": {"if": {"op": "!=", '
+ '"left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "censor day"}, '
+ '"right": {"field": "start day"}}, "else": {"literal": 0}}}}}, {"filter": {"op": ">=", "left": {"field": "survival '
+ 'days"}, "right": {"literal": 0}}}, {"derive": {"survival years": {"op": "/", "left": {"field": "survival days"}, '
+ '"right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": {"op": "!=", "left": {"field": "end day"}, '
+ '"right": {"literal": null}}, "then": {"literal": null}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, '
+ '"right": {"literal": null}}, "then": {"field": "survival years"}, "else": {"literal": null}}}}}, {"derive": {"cohort '
+ 'end": {"agg": "max", "field": "survival years"}}}, {"groupby": "stratum"}, {"derive": {"subjects": {"agg": "count"}, '
+ '"deaths": {"agg": "sum", "field": "died"}}}, {"orderby": {"field": ["survival years", "<E1.F1>"], "order": "asc"}}, '
+ '{"derive": {"survival percentage": {"rolling": {"expression": {"op": "*", "left": {"op": "-", "left": {"literal": '
+ '1}, "right": {"op": "/", "left": {"agg": "sum", "field": "died"}, "right": {"field": "subjects"}}}, "right": '
+ '{"literal": 100}}}}}}, {"derive": {"final percentage": {"agg": "min", "field": "survival percentage"}}}, {"derive": '
+ '{"label year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"if": {"op": ">", '
+ '"left": {"field": "deaths"}, "right": {"literal": 0}}, "then": {"op": "*", "left": {"field": "cohort end"}, "right": '
+ '{"literal": 1.05}}, "else": {"literal": null}}, "else": {"literal": null}}}}, {"derive": {"full survival": '
+ '{"literal": 100}}}, {"derive": {"first year": {"agg": "min", "field": "survival years"}}}, {"derive": {"first '
+ 'percentage": {"agg": "max", "field": "survival percentage"}}}, {"derive": {"lead year": {"if": {"op": "==", "left": '
+ '{"window": "rank"}, "right": {"literal": 1}}, "then": {"literal": 0}, "else": {"if": {"op": "==", "left": {"window": '
+ '"rank"}, "right": {"literal": 2}}, "then": {"field": "first year"}, "else": {"literal": null}}}, "drop year": {"if": '
+ '{"op": "<=", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": {"field": "first year"}, "else": '
+ '{"literal": null}}, "drop percentage": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, '
+ '"then": {"field": "full survival"}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": '
+ '2}}, "then": {"field": "first percentage"}, "else": {"literal": null}}}}}, {"derive": {"rule year": {"if": {"op": '
+ '"==", "left": {"field": "deaths"}, "right": {"literal": 0}}, "then": {"literal": null}, "else": {"if": {"op": "==", '
+ '"left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"field": "label year"}, "else": {"if": {"op": "==", '
+ '"left": {"field": "survival percentage"}, "right": {"field": "final percentage"}}, "then": {"field": "survival '
+ 'years"}, "else": {"literal": null}}}}}}, {"derive": {"_label_offset": {"op": "+", "left": {"field": "final '
+ 'percentage"}, "right": {"literal": 0.5}}}}, {"derive": {"final survival": {"op": "-", "left": {"field": '
+ '"_label_offset"}, "right": {"op": "%", "left": {"field": "_label_offset"}, "right": {"literal": 1}}}}}, {"derive": '
+ '{"survivors": {"op": "-", "left": {"field": "subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": '
+ '{"concat": [{"field": "stratum"}, {"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, '
+ '{"field": "subjects"}, {"literal": ") "}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": '
+ '[{"mark": "line", "mapping": [{"encoding": "x", "field": "lead year", "type": "quantitative", "title": "survival '
+ 'years", "domain": {"min": 0}}, {"encoding": "y", "field": "full survival", "type": "quantitative", "domain": {"min": '
+ '0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": '
+ '"line", "mapping": [{"encoding": "x", "field": "drop year", "type": "quantitative", "title": "survival years", '
+ '"domain": {"min": 0}}, {"encoding": "y", "field": "drop percentage", "type": "quantitative", "domain": {"min": 0, '
+ '"max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", '
+ '"mapping": [{"encoding": "x", "field": "survival years", "type": "quantitative", "title": "survival years", '
+ '"domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", "domain": {"min": '
+ '0, "max": 100}, "title": "survival (%)"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
+ 'true}], "interpolate": "step-after"}, {"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": '
+ '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", '
+ '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": '
+ '"nominal", "omitLegend": true}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": '
+ '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", '
+ '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": '
+ '"M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", "value": 500}, {"encoding": "color", "field": '
+ '"stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label '
+ 'year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final '
+ 'percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", '
+ '"type": "nominal"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}], "align": '
  '"right", "dy": -9, "stroke": "white", "strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": '
  '"<E2.F>", "align": "right"}}',
  '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}, {"name": "<E3>", '
@@ -671,65 +748,137 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  'null}}, "end day": {"if": {"op": "==", "left": {"field": "<E1.F2>"}, "right": {"literal": "<V2>"}}, "then": '
  '{"field": "<E1.F3>"}, "else": {"literal": null}}}}, {"groupby": "<E1.F1:n>"}, {"derive": {"subject start": {"agg": '
  '"min", "field": "start day"}, "subject end": {"agg": "max", "field": "end day"}}}, {"filter": {"op": "!=", "left": '
- '{"field": "<E2.F:n>"}, "right": {"literal": null}}}, {"groupby": ["<E1.F1>", "<E2.F:n>"]}, {"rollup": {"start day": '
- '{"op": "min", "field": "subject start"}, "end day": {"op": "max", "field": "subject end"}, "censor day": {"op": '
- '"max", "field": "censor day"}}}, {"filter": {"op": "!=", "left": {"field": "start day"}, "right": {"literal": '
- 'null}}}, {"derive": {"died": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": '
- '{"literal": 1}, "else": {"literal": 0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end day"}, "right": '
- '{"literal": null}}, "then": {"op": "-", "left": {"field": "end day"}, "right": {"field": "start day"}}, "else": '
- '{"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"op": "-", "left": '
- '{"field": "censor day"}, "right": {"field": "start day"}}, "else": {"literal": 0}}}}}, {"filter": {"op": ">=", '
- '"left": {"field": "survival days"}, "right": {"literal": 0}}}, {"derive": {"survival years": {"op": "/", "left": '
- '{"field": "survival days"}, "right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": {"op": "!=", "left": '
- '{"field": "end day"}, "right": {"literal": null}}, "then": {"literal": null}, "else": {"if": {"op": "!=", "left": '
- '{"field": "censor day"}, "right": {"literal": null}}, "then": {"field": "survival years"}, "else": {"literal": '
- 'null}}}}}, {"derive": {"cohort end": {"agg": "max", "field": "survival years"}}}, {"groupby": "<E2.F>"}, {"derive": '
- '{"subjects": {"agg": "count"}, "deaths": {"agg": "sum", "field": "died"}}}, {"orderby": {"field": ["survival years", '
- '"<E1.F1>"], "order": "asc"}}, {"derive": {"survival percentage": {"rolling": {"expression": {"op": "*", "left": '
- '{"op": "-", "left": {"literal": 1}, "right": {"op": "/", "left": {"agg": "sum", "field": "died"}, "right": {"field": '
- '"subjects"}}}, "right": {"literal": 100}}}}}}, {"derive": {"final percentage": {"agg": "min", "field": "survival '
- 'percentage"}}}, {"derive": {"label year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, '
- '"then": {"if": {"op": ">", "left": {"field": "deaths"}, "right": {"literal": 0}}, "then": {"op": "*", "left": '
- '{"field": "cohort end"}, "right": {"literal": 1.05}}, "else": {"literal": null}}, "else": {"literal": null}}}}, '
- '{"derive": {"full survival": {"literal": 100}}}, {"derive": {"first year": {"agg": "min", "field": "survival '
- 'years"}}}, {"derive": {"first percentage": {"agg": "max", "field": "survival percentage"}}}, {"derive": {"lead '
- 'year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"literal": 0}, "else": '
- '{"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": {"field": "first year"}, "else": '
- '{"literal": null}}}, "drop year": {"if": {"op": "<=", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": '
- '{"field": "first year"}, "else": {"literal": null}}, "drop percentage": {"if": {"op": "==", "left": {"window": '
- '"rank"}, "right": {"literal": 1}}, "then": {"field": "full survival"}, "else": {"if": {"op": "==", "left": '
- '{"window": "rank"}, "right": {"literal": 2}}, "then": {"field": "first percentage"}, "else": {"literal": null}}}}}, '
- '{"derive": {"rule year": {"if": {"op": "==", "left": {"field": "deaths"}, "right": {"literal": 0}}, "then": '
- '{"literal": null}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": '
- '{"field": "label year"}, "else": {"if": {"op": "==", "left": {"field": "survival percentage"}, "right": {"field": '
- '"final percentage"}}, "then": {"field": "survival years"}, "else": {"literal": null}}}}}}, {"derive": '
- '{"_label_offset": {"op": "+", "left": {"field": "final percentage"}, "right": {"literal": 0.5}}}}, {"derive": '
- '{"final survival": {"op": "-", "left": {"field": "_label_offset"}, "right": {"op": "%", "left": {"field": '
- '"_label_offset"}, "right": {"literal": 1}}}}}, {"derive": {"survivors": {"op": "-", "left": {"field": "subjects"}, '
- '"right": {"field": "deaths"}}}}, {"derive": {"final label": {"concat": [{"field": "<E2.F>"}, {"literal": " "}, '
- '{"literal": "("}, {"field": "survivors"}, {"literal": "/"}, {"field": "subjects"}, {"literal": ") "}, {"field": '
- '"final survival"}, {"literal": "%"}]}}}], "representation": [{"mark": "line", "mapping": [{"encoding": "x", "field": '
- '"lead year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": '
- '"full survival", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "<E2.F>", '
- '"type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": "drop year", '
- '"type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "drop '
- 'percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "<E2.F>", '
- '"type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": "survival years", '
- '"type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival '
- 'percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival (%)"}, {"encoding": '
- '"color", "field": "<E2.F>", "type": "nominal", "omitLegend": true}], "interpolate": "step-after"}, {"mark": "line", '
- '"mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": "survival years", "domain": '
- '{"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": {"min": 0, "max": '
- '100}}, {"encoding": "color", "field": "<E2.F>", "type": "nominal", "omitLegend": true}]}, {"mark": "point", '
- '"mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": "survival years", "domain": '
- '{"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", "domain": {"min": 0, "max": '
- '100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", "value": '
- '500}, {"encoding": "color", "field": "<E2.F>", "type": "nominal", "omitLegend": true}]}, {"mark": "text", "mapping": '
- '[{"encoding": "x", "field": "label year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, '
- '{"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, '
- '{"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": "color", "field": "<E2.F>", "type": '
- '"nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", "strokeWidth": 3, "strokeOpacity": '
- '0.7, "avoidOverlap": 8}], "title": {"text": "<E2.F>", "align": "right"}}',
+ '{"field": "<E2.F:n>"}, "right": {"literal": null}}}, {"derive": {"stratum": "<GROUP:E2.F>"}}, {"filter": {"op": '
+ '"!=", "left": {"field": "stratum"}, "right": {"literal": null}}}, {"groupby": ["<E1.F1>", "stratum"]}, {"rollup": '
+ '{"start day": {"op": "min", "field": "subject start"}, "end day": {"op": "max", "field": "subject end"}, "censor '
+ 'day": {"op": "max", "field": "censor day"}}}, {"filter": {"op": "!=", "left": {"field": "start day"}, "right": '
+ '{"literal": null}}}, {"derive": {"died": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": '
+ 'null}}, "then": {"literal": 1}, "else": {"literal": 0}}, "survival days": {"if": {"op": "!=", "left": {"field": "end '
+ 'day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": "end day"}, "right": {"field": "start '
+ 'day"}}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"op": '
+ '"-", "left": {"field": "censor day"}, "right": {"field": "start day"}}, "else": {"literal": 0}}}}}, {"filter": '
+ '{"op": ">=", "left": {"field": "survival days"}, "right": {"literal": 0}}}, {"derive": {"survival years": {"op": '
+ '"/", "left": {"field": "survival days"}, "right": {"literal": 365.25}}}}, {"derive": {"censor year": {"if": {"op": '
+ '"!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"literal": null}, "else": {"if": {"op": '
+ '"!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": {"field": "survival years"}, "else": '
+ '{"literal": null}}}}}, {"derive": {"cohort end": {"agg": "max", "field": "survival years"}}}, {"groupby": '
+ '"stratum"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": "sum", "field": "died"}}}, {"orderby": '
+ '{"field": ["survival years", "<E1.F1>"], "order": "asc"}}, {"derive": {"survival percentage": {"rolling": '
+ '{"expression": {"op": "*", "left": {"op": "-", "left": {"literal": 1}, "right": {"op": "/", "left": {"agg": "sum", '
+ '"field": "died"}, "right": {"field": "subjects"}}}, "right": {"literal": 100}}}}}}, {"derive": {"final percentage": '
+ '{"agg": "min", "field": "survival percentage"}}}, {"derive": {"label year": {"if": {"op": "==", "left": {"window": '
+ '"rank"}, "right": {"literal": 1}}, "then": {"if": {"op": ">", "left": {"field": "deaths"}, "right": {"literal": 0}}, '
+ '"then": {"op": "*", "left": {"field": "cohort end"}, "right": {"literal": 1.05}}, "else": {"literal": null}}, '
+ '"else": {"literal": null}}}}, {"derive": {"full survival": {"literal": 100}}}, {"derive": {"first year": {"agg": '
+ '"min", "field": "survival years"}}}, {"derive": {"first percentage": {"agg": "max", "field": "survival '
+ 'percentage"}}}, {"derive": {"lead year": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, '
+ '"then": {"literal": 0}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": '
+ '{"field": "first year"}, "else": {"literal": null}}}, "drop year": {"if": {"op": "<=", "left": {"window": "rank"}, '
+ '"right": {"literal": 2}}, "then": {"field": "first year"}, "else": {"literal": null}}, "drop percentage": {"if": '
+ '{"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"field": "full survival"}, "else": '
+ '{"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": {"field": "first percentage"}, '
+ '"else": {"literal": null}}}}}, {"derive": {"rule year": {"if": {"op": "==", "left": {"field": "deaths"}, "right": '
+ '{"literal": 0}}, "then": {"literal": null}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": '
+ '{"literal": 1}}, "then": {"field": "label year"}, "else": {"if": {"op": "==", "left": {"field": "survival '
+ 'percentage"}, "right": {"field": "final percentage"}}, "then": {"field": "survival years"}, "else": {"literal": '
+ 'null}}}}}}, {"derive": {"_label_offset": {"op": "+", "left": {"field": "final percentage"}, "right": {"literal": '
+ '0.5}}}}, {"derive": {"final survival": {"op": "-", "left": {"field": "_label_offset"}, "right": {"op": "%", "left": '
+ '{"field": "_label_offset"}, "right": {"literal": 1}}}}}, {"derive": {"survivors": {"op": "-", "left": {"field": '
+ '"subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": {"concat": [{"field": "stratum"}, '
+ '{"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, {"field": "subjects"}, {"literal": ") '
+ '"}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": [{"mark": "line", "mapping": [{"encoding": '
+ '"x", "field": "lead year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
+ '"y", "field": "full survival", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
+ '"field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "drop year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", '
+ '"field": "drop percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
+ '"field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "survival years", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
+ '"y", "field": "survival percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival '
+ '(%)"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}], "interpolate": '
+ '"step-after"}, {"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
+ 'true}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, '
+ '{"encoding": "size", "value": 500}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
+ 'true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": '
+ '"color", "field": "stratum", "type": "nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", '
+ '"strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": "<E2.F>", "align": "right"}}',
+ '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}, {"name": "<E3>", '
+ '"source": "<E3.url>"}], "transformation": [{"derive": {"membership tag": "<GROUPTAG:E2.F>"}, "in": "<E2>", "out": '
+ '"<E2>__m"}, {"groupby": "<E2.F1:n>", "in": "<E2>__m"}, {"rollup": {"membership tag": {"op": "min", "field": '
+ '"membership tag"}}, "in": "<E2>__m", "out": "<E2>__by_subject"}, {"join": {"on": ["<E1.F1>", "<E2.F1>"], "kind": '
+ '"left"}, "in": ["<E1>", "<E2>__by_subject"], "out": "<E1>__p"}, {"derive": {"censor day": {"if": {"op": "==", '
+ '"left": {"field": "<E3.F2:n>"}, "right": {"literal": "<V3>"}}, "then": {"field": "<E3.F3:q>"}, "else": {"literal": '
+ 'null}}}, "in": "<E3>", "out": "<E3>__c"}, {"groupby": "<E3.F1:n>", "in": "<E3>__c"}, {"rollup": {"censor day": '
+ '{"op": "max", "field": "censor day"}}, "in": "<E3>__c", "out": "<E3>__by_subject"}, {"join": {"on": ["<E1.F1>", '
+ '"<E3.F1>"], "kind": "left"}, "in": ["<E1>__p", "<E3>__by_subject"], "out": "<E1>__cens"}, {"filter": {"op": "!=", '
+ '"left": {"field": "<E1.F3:q>"}, "right": {"literal": null}}}, {"derive": {"start day": {"if": {"op": "==", "left": '
+ '{"field": "<E1.F2:n>"}, "right": {"literal": "<V1>"}}, "then": {"field": "<E1.F3>"}, "else": {"literal": null}}, '
+ '"end day": {"if": {"op": "==", "left": {"field": "<E1.F2>"}, "right": {"literal": "<V2>"}}, "then": {"field": '
+ '"<E1.F3>"}, "else": {"literal": null}}, "stratum": "<GROUPLABEL:E2.F>"}}, {"groupby": "<E1.F1:n>"}, {"rollup": '
+ '{"start day": {"op": "min", "field": "start day"}, "end day": {"op": "max", "field": "end day"}, "censor day": '
+ '{"op": "max", "field": "censor day"}, "stratum": {"op": "max", "field": "stratum"}}}, {"filter": {"op": "!=", '
+ '"left": {"field": "start day"}, "right": {"literal": null}}}, {"derive": {"died": {"if": {"op": "!=", "left": '
+ '{"field": "end day"}, "right": {"literal": null}}, "then": {"literal": 1}, "else": {"literal": 0}}, "survival days": '
+ '{"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": {"op": "-", "left": {"field": '
+ '"end day"}, "right": {"field": "start day"}}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": '
+ '{"literal": null}}, "then": {"op": "-", "left": {"field": "censor day"}, "right": {"field": "start day"}}, "else": '
+ '{"literal": 0}}}}}, {"filter": {"op": ">=", "left": {"field": "survival days"}, "right": {"literal": 0}}}, '
+ '{"derive": {"survival years": {"op": "/", "left": {"field": "survival days"}, "right": {"literal": 365.25}}}}, '
+ '{"derive": {"censor year": {"if": {"op": "!=", "left": {"field": "end day"}, "right": {"literal": null}}, "then": '
+ '{"literal": null}, "else": {"if": {"op": "!=", "left": {"field": "censor day"}, "right": {"literal": null}}, "then": '
+ '{"field": "survival years"}, "else": {"literal": null}}}}}, {"derive": {"cohort end": {"agg": "max", "field": '
+ '"survival years"}}}, {"groupby": "stratum"}, {"derive": {"subjects": {"agg": "count"}, "deaths": {"agg": "sum", '
+ '"field": "died"}}}, {"orderby": {"field": ["survival years", "<E1.F1>"], "order": "asc"}}, {"derive": {"survival '
+ 'percentage": {"rolling": {"expression": {"op": "*", "left": {"op": "-", "left": {"literal": 1}, "right": {"op": "/", '
+ '"left": {"agg": "sum", "field": "died"}, "right": {"field": "subjects"}}}, "right": {"literal": 100}}}}}}, '
+ '{"derive": {"final percentage": {"agg": "min", "field": "survival percentage"}}}, {"derive": {"label year": {"if": '
+ '{"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"if": {"op": ">", "left": {"field": '
+ '"deaths"}, "right": {"literal": 0}}, "then": {"op": "*", "left": {"field": "cohort end"}, "right": {"literal": '
+ '1.05}}, "else": {"literal": null}}, "else": {"literal": null}}}}, {"derive": {"full survival": {"literal": 100}}}, '
+ '{"derive": {"first year": {"agg": "min", "field": "survival years"}}}, {"derive": {"first percentage": {"agg": '
+ '"max", "field": "survival percentage"}}}, {"derive": {"lead year": {"if": {"op": "==", "left": {"window": "rank"}, '
+ '"right": {"literal": 1}}, "then": {"literal": 0}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": '
+ '{"literal": 2}}, "then": {"field": "first year"}, "else": {"literal": null}}}, "drop year": {"if": {"op": "<=", '
+ '"left": {"window": "rank"}, "right": {"literal": 2}}, "then": {"field": "first year"}, "else": {"literal": null}}, '
+ '"drop percentage": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 1}}, "then": {"field": "full '
+ 'survival"}, "else": {"if": {"op": "==", "left": {"window": "rank"}, "right": {"literal": 2}}, "then": {"field": '
+ '"first percentage"}, "else": {"literal": null}}}}}, {"derive": {"rule year": {"if": {"op": "==", "left": {"field": '
+ '"deaths"}, "right": {"literal": 0}}, "then": {"literal": null}, "else": {"if": {"op": "==", "left": {"window": '
+ '"rank"}, "right": {"literal": 1}}, "then": {"field": "label year"}, "else": {"if": {"op": "==", "left": {"field": '
+ '"survival percentage"}, "right": {"field": "final percentage"}}, "then": {"field": "survival years"}, "else": '
+ '{"literal": null}}}}}}, {"derive": {"_label_offset": {"op": "+", "left": {"field": "final percentage"}, "right": '
+ '{"literal": 0.5}}}}, {"derive": {"final survival": {"op": "-", "left": {"field": "_label_offset"}, "right": {"op": '
+ '"%", "left": {"field": "_label_offset"}, "right": {"literal": 1}}}}}, {"derive": {"survivors": {"op": "-", "left": '
+ '{"field": "subjects"}, "right": {"field": "deaths"}}}}, {"derive": {"final label": {"concat": [{"field": "stratum"}, '
+ '{"literal": " "}, {"literal": "("}, {"field": "survivors"}, {"literal": "/"}, {"field": "subjects"}, {"literal": ") '
+ '"}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": [{"mark": "line", "mapping": [{"encoding": '
+ '"x", "field": "lead year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
+ '"y", "field": "full survival", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
+ '"field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "drop year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", '
+ '"field": "drop percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
+ '"field": "stratum", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "survival years", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
+ '"y", "field": "survival percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival '
+ '(%)"}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": true}], "interpolate": '
+ '"step-after"}, {"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
+ 'true}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, '
+ '{"encoding": "size", "value": 500}, {"encoding": "color", "field": "stratum", "type": "nominal", "omitLegend": '
+ 'true}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": '
+ '"color", "field": "stratum", "type": "nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", '
+ '"strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": "<E2.F>", "align": "right"}}',
  '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}, {"name": "<E3>", '
  '"source": "<E3.url>"}], "transformation": [{"groupby": "<E2.F1:n>", "in": "<E2>"}, {"rollup": {"in second table": '
  '{"op": "count"}}, "in": "<E2>", "out": "<E2>__by_subject"}, {"join": {"on": ["<E1.F1>", "<E2.F1>"], "kind": "left"}, '
@@ -782,25 +931,27 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  '{"field": "final survival"}, {"literal": "%"}]}}}], "representation": [{"mark": "line", "mapping": [{"encoding": '
  '"x", "field": "lead year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
  '"y", "field": "full survival", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
- '"field": "group", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": '
- '"drop year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": '
- '"drop percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": '
- '"group", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": "survival '
- 'years", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": '
- '"survival percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival (%)"}, '
- '{"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true}], "interpolate": "step-after"}, '
- '{"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": "survival '
- 'years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": '
- '{"min": 0, "max": 100}}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true}]}, {"mark": '
- '"point", "mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": "survival years", '
- '"domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", "domain": {"min": '
- '0, "max": 100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", '
- '"value": 500}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true}]}, {"mark": "text", '
- '"mapping": [{"encoding": "x", "field": "label year", "type": "quantitative", "title": "survival years", "domain": '
- '{"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": {"min": 0, "max": '
- '100}}, {"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": "color", "field": "group", '
- '"type": "nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", "strokeWidth": 3, '
- '"strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": "<E2>", "align": "right"}}',
+ '"field": "group", "type": "nominal", "omitLegend": true, "domain": ["<E2>", "No <E2>"]}]}, {"mark": "line", '
+ '"mapping": [{"encoding": "x", "field": "drop year", "type": "quantitative", "title": "survival years", "domain": '
+ '{"min": 0}}, {"encoding": "y", "field": "drop percentage", "type": "quantitative", "domain": {"min": 0, "max": '
+ '100}}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true, "domain": ["<E2>", "No '
+ '<E2>"]}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": "survival years", "type": "quantitative", '
+ '"title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": '
+ '"quantitative", "domain": {"min": 0, "max": 100}, "title": "survival (%)"}, {"encoding": "color", "field": "group", '
+ '"type": "nominal", "omitLegend": true, "domain": ["<E2>", "No <E2>"]}], "interpolate": "step-after"}, {"mark": '
+ '"line", "mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": "survival years", '
+ '"domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": {"min": 0, '
+ '"max": 100}}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true, "domain": ["<E2>", "No '
+ '<E2>"]}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, '
+ '{"encoding": "size", "value": 500}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true, '
+ '"domain": ["<E2>", "No <E2>"]}]}, {"mark": "text", "mapping": [{"encoding": "x", "field": "label year", "type": '
+ '"quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", '
+ '"type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", "type": '
+ '"nominal"}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true, "domain": ["<E2>", "No '
+ '<E2>"]}], "align": "right", "dy": -9, "stroke": "white", "strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": '
+ '8}], "title": {"text": "<E2>", "align": "right"}}',
  '{"source": [{"name": "<E1>", "source": "<E1.url>"}, {"name": "<E2>", "source": "<E2.url>"}, {"name": "<E3>", '
  '"source": "<E3.url>"}, {"name": "<E4>", "source": "<E4.url>"}], "transformation": [{"groupby": "<E2.F1:n>", "in": '
  '"<E2>"}, {"rollup": {"in second table": {"op": "count"}}, "in": "<E2>", "out": "<E2>__by_subject"}, {"join": {"on": '
@@ -858,25 +1009,29 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  '"}, {"field": "final survival"}, {"literal": "%"}]}}}], "representation": [{"mark": "line", "mapping": [{"encoding": '
  '"x", "field": "lead year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
  '"y", "field": "full survival", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
- '"field": "group", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": '
- '"drop year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": '
- '"drop percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": '
- '"group", "type": "nominal", "omitLegend": true}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": "survival '
- 'years", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": '
- '"survival percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival (%)"}, '
- '{"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true}], "interpolate": "step-after"}, '
- '{"mark": "line", "mapping": [{"encoding": "x", "field": "rule year", "type": "quantitative", "title": "survival '
+ '"field": "group", "type": "nominal", "omitLegend": true, "domain": ["<E2> + <E3>", "<E2> only", "<E3> only", '
+ '"Neither"]}]}, {"mark": "line", "mapping": [{"encoding": "x", "field": "drop year", "type": "quantitative", "title": '
+ '"survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "drop percentage", "type": "quantitative", '
+ '"domain": {"min": 0, "max": 100}}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true, '
+ '"domain": ["<E2> + <E3>", "<E2> only", "<E3> only", "Neither"]}]}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "survival years", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": '
+ '"y", "field": "survival percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}, "title": "survival '
+ '(%)"}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true, "domain": ["<E2> + <E3>", '
+ '"<E2> only", "<E3> only", "Neither"]}], "interpolate": "step-after"}, {"mark": "line", "mapping": [{"encoding": "x", '
+ '"field": "rule year", "type": "quantitative", "title": "survival years", "domain": {"min": 0}}, {"encoding": "y", '
+ '"field": "final percentage", "type": "quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "color", '
+ '"field": "group", "type": "nominal", "omitLegend": true, "domain": ["<E2> + <E3>", "<E2> only", "<E3> only", '
+ '"Neither"]}]}, {"mark": "point", "mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", '
+ '"title": "survival years", "domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": '
+ '"quantitative", "domain": {"min": 0, "max": 100}}, {"encoding": "shape", "value": '
+ '"M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", "value": 500}, {"encoding": "color", "field": '
+ '"group", "type": "nominal", "omitLegend": true, "domain": ["<E2> + <E3>", "<E2> only", "<E3> only", "Neither"]}]}, '
+ '{"mark": "text", "mapping": [{"encoding": "x", "field": "label year", "type": "quantitative", "title": "survival '
  'years", "domain": {"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": '
- '{"min": 0, "max": 100}}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true}]}, {"mark": '
- '"point", "mapping": [{"encoding": "x", "field": "censor year", "type": "quantitative", "title": "survival years", '
- '"domain": {"min": 0}}, {"encoding": "y", "field": "survival percentage", "type": "quantitative", "domain": {"min": '
- '0, "max": 100}}, {"encoding": "shape", "value": "M-0.09,-0.5L0.09,-0.5L0.09,0.5L-0.09,0.5Z"}, {"encoding": "size", '
- '"value": 500}, {"encoding": "color", "field": "group", "type": "nominal", "omitLegend": true}]}, {"mark": "text", '
- '"mapping": [{"encoding": "x", "field": "label year", "type": "quantitative", "title": "survival years", "domain": '
- '{"min": 0}}, {"encoding": "y", "field": "final percentage", "type": "quantitative", "domain": {"min": 0, "max": '
- '100}}, {"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": "color", "field": "group", '
- '"type": "nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", "strokeWidth": 3, '
- '"strokeOpacity": 0.7, "avoidOverlap": 8}], "title": {"text": "<E2> / <E3>", "align": "right"}}',
+ '{"min": 0, "max": 100}}, {"encoding": "text", "field": "final label", "type": "nominal"}, {"encoding": "color", '
+ '"field": "group", "type": "nominal", "omitLegend": true, "domain": ["<E2> + <E3>", "<E2> only", "<E3> only", '
+ '"Neither"]}], "align": "right", "dy": -9, "stroke": "white", "strokeWidth": 3, "strokeOpacity": 0.7, "avoidOverlap": '
+ '8}], "title": {"text": "<E2> / <E3>", "align": "right"}}',
  '{"source": {"name": "<E>", "source": "<E.url>"}, "transformation": [{"filter": "<MARGINAL:D1,D2>"}, {"derive": '
  '{"events": {"if": {"op": "==", "left": {"field": "<D2:n>"}, "right": {"literal": "<V1>"}}, "then": {"field": "<M>"}, '
  '"else": {"literal": 0}}, "censored": {"if": {"op": "==", "left": {"field": "<D2:n>"}, "right": {"literal": "<V2>"}}, '
@@ -979,29 +1134,22 @@ TEMPLATES = ['{"source": {"name": "<E>", "source": "<E.url>"}, "transformation":
  '"nominal", "omitLegend": true}], "align": "right", "dy": -9, "stroke": "white", "strokeWidth": 3, "strokeOpacity": '
  '0.7, "avoidOverlap": 8}], "title": {"text": "<D3>", "align": "right"}}',
  '{"source": {"name": "<E>", "source": "<E.url>"}, "transformation": [{"groupby": ["<F2>", "<F1>"]}, {"rollup": '
- '{"count <E>": {"op": "count"}}}, {"derive": {"udi_internal_percentile": {"op": "/", "left": {"field": "count <E>"}, '
- '"right": {"agg": "max", "field": "count <E>"}}}}, {"derive": {"udi_internal_text_color_threshold": {"if": {"op": '
- '">", "left": {"field": "udi_internal_percentile"}, "right": {"literal": 0.5}}, "then": {"literal": "large"}, "else": '
- '{"literal": "small"}}}}], "representation": [{"mark": "rect", "mapping": [{"encoding": "color", "field": "count '
- '<E>", "type": "quantitative"}, {"encoding": "y", "field": "<F1>", "type": "nominal"}, {"encoding": "x", "field": '
- '"<F2>", "type": "nominal"}]}, {"mark": "text", "mapping": [{"encoding": "text", "field": "count <E>", "type": '
- '"quantitative"}, {"encoding": "y", "field": "<F1>", "type": "nominal"}, {"encoding": "x", "field": "<F2>", "type": '
- '"nominal"}, {"encoding": "color", "field": "udi_internal_text_color_threshold", "type": "nominal", "domain": '
- '["large", "small"], "range": ["white", "black"], "omitLegend": true}]}]}',
+ '{"count <E>": {"op": "count"}}}], "representation": [{"mark": "rect", "mapping": [{"encoding": "color", "field": '
+ '"count <E>", "type": "quantitative"}, {"encoding": "y", "field": "<F1>", "type": "nominal"}, {"encoding": "x", '
+ '"field": "<F2>", "type": "nominal"}]}, {"mark": "text", "mapping": [{"encoding": "text", "field": "count <E>", '
+ '"type": "quantitative"}, {"encoding": "y", "field": "<F1>", "type": "nominal"}, {"encoding": "x", "field": "<F2>", '
+ '"type": "nominal"}, {"encoding": "color", "value": "black"}], "stroke": "white", "strokeWidth": 3, "strokeOpacity": '
+ '0.7}]}',
  '{"source": {"name": "<E>", "source": "<E.url>"}, "transformation": [{"groupby": ["<F3>", "<F2>"]}, {"rollup": '
  '{"average <F1>": {"op": "mean", "field": "<F1:q>"}}}], "representation": {"mark": "rect", "mapping": [{"encoding": '
  '"color", "field": "average <F1>", "type": "quantitative"}, {"encoding": "y", "field": "<F2>", "type": "nominal"}, '
  '{"encoding": "x", "field": "<F3>", "type": "nominal"}]}}',
- '{"source": {"name": "<E>", "source": "<E.url>"}, "transformation": [{"filter": "<MARGINAL:D1,D2>"}, {"derive": '
- '{"udi_internal_percentile": {"op": "/", "left": {"field": "<M>"}, "right": {"agg": "max", "field": "<M>"}}}}, '
- '{"derive": {"udi_internal_text_color_threshold": {"if": {"op": ">", "left": {"field": "udi_internal_percentile"}, '
- '"right": {"literal": 0.5}}, "then": {"literal": "large"}, "else": {"literal": "small"}}}}], "representation": '
- '[{"mark": "rect", "mapping": [{"encoding": "color", "field": "<M>", "type": "quantitative"}, {"encoding": "y", '
- '"field": "<D2:n>", "type": "nominal"}, {"encoding": "x", "field": "<D1:n>", "type": "nominal"}]}, {"mark": "text", '
- '"mapping": [{"encoding": "text", "field": "<M>", "type": "quantitative"}, {"encoding": "y", "field": "<D2:n>", '
- '"type": "nominal"}, {"encoding": "x", "field": "<D1:n>", "type": "nominal"}, {"encoding": "color", "field": '
- '"udi_internal_text_color_threshold", "type": "nominal", "domain": ["large", "small"], "range": ["white", "black"], '
- '"omitLegend": true}]}]}',
+ '{"source": {"name": "<E>", "source": "<E.url>"}, "transformation": [{"filter": "<MARGINAL:D1,D2>"}], '
+ '"representation": [{"mark": "rect", "mapping": [{"encoding": "color", "field": "<M>", "type": "quantitative"}, '
+ '{"encoding": "y", "field": "<D2:n>", "type": "nominal"}, {"encoding": "x", "field": "<D1:n>", "type": "nominal"}]}, '
+ '{"mark": "text", "mapping": [{"encoding": "text", "field": "<M>", "type": "quantitative"}, {"encoding": "y", '
+ '"field": "<D2:n>", "type": "nominal"}, {"encoding": "x", "field": "<D1:n>", "type": "nominal"}, {"encoding": '
+ '"color", "value": "black"}], "stroke": "white", "strokeWidth": 3, "strokeOpacity": 0.7}]}',
  '{"source": {"name": "<E>", "source": "<E.url>"}, "representation": {"mark": "point", "mapping": [{"encoding": "x", '
  '"field": "<F1>", "type": "quantitative"}, {"encoding": "y", "field": "<F2>", "type": "quantitative"}, {"encoding": '
  '"color", "field": "<F3>", "type": "nominal"}]}}',
@@ -1075,11 +1223,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'required': ['entity', 'field'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[barchart] Joins two entities and counts records grouped by a field from the related '
-                              'entity, displayed as a vertical bar chart. Design: Cross-entity join groups by a field '
-                              'not native to the counted entity. Vertical orientation for small category counts (<=4). '
-                              'Tasks: Compare counts across categories from a related entity; discover cross-entity '
-                              'frequency patterns. Query patterns: How many <E1> are there, grouped by <E2.F:n>?',
+ {'function': {'description': 'The secondary data entity (table) to join with.',
                'name': 'vis_002_barchart_join_count_vert_grouped',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
@@ -1092,11 +1236,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'required': ['entity1', 'entity2', 'entity2_field'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[barchart] Joins two entities and counts records grouped by a field from the related '
-                              'entity, displayed as a horizontal bar chart. Design: Cross-entity join with horizontal '
-                              'orientation for higher category counts (>4). Tasks: Compare counts across categories '
-                              'from a related entity; discover cross-entity frequency patterns. Query patterns: How '
-                              'many <E1> are there, grouped by <E2.F:n>?',
+ {'function': {'description': 'The secondary data entity (table) to join with.',
                'name': 'vis_003_barchart_join_count_horiz_grouped',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
@@ -1143,13 +1283,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'required': ['entity', 'dimension'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[stacked_bar] Joins two entities and produces a vertical stacked bar chart of counts '
-                              'grouped by two nominal fields. Design: Stacked bars show part-to-whole composition '
-                              'within each category. Vertical layout for small category counts (<=4). Color encodes '
-                              'the secondary grouping field from the related entity. Color is preferably mapped to the '
-                              'variable with fewer unique values for better discriminability. Tasks: Compare group '
-                              'compositions across categories; identify dominant sub-groups within each bar. Query '
-                              'patterns: How many <E1> are there, grouped by <E1.F1:n> and <E2.F2:n>?',
+ {'function': {'description': 'The secondary data entity (table) to join with.',
                'name': 'vis_006_stacked_bar_join_count_vert_stacked_grouped',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
@@ -1164,13 +1298,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'required': ['entity1', 'entity2', 'entity1_field1', 'entity2_field2'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[stacked_bar] Joins two entities and produces a horizontal stacked bar chart of counts '
-                              'grouped by two nominal fields. Design: Horizontal orientation for higher category '
-                              'counts (>4). Color encodes the primary grouping field. Cross-entity join required. '
-                              'Color is preferably mapped to the variable with fewer unique values for better '
-                              'discriminability. Tasks: Compare group compositions across categories; identify '
-                              'dominant sub-groups within each bar. Query patterns: How many <E1> are there, grouped '
-                              'by <E1.F1:n> and <E2.F2:n>?',
+ {'function': {'description': 'The secondary data entity (table) to join with.',
                'name': 'vis_007_stacked_bar_join_count_horiz_stacked_grouped',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
@@ -1305,9 +1433,14 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
-                                             'field1': {'description': 'nominal field, encodes color.',
+                                             'field1': {'description': 'nominal field, encodes color, y-axis.',
                                                         'type': 'string'},
-                                             'field2': {'description': 'nominal field, encodes x-axis.',
+                                             'field2': {'description': 'nominal field, encodes x-axis, y-axis — the '
+                                                                       'JOIN KEY on this table: the column holding the '
+                                                                       'shared record id (e.g. a subject or patient '
+                                                                       'id). Both sides of a join must name columns '
+                                                                       'holding the SAME identifiers, or nothing '
+                                                                       'matches.',
                                                         'type': 'string'}},
                               'required': ['entity', 'field1', 'field2'],
                               'type': 'object'}},
@@ -1323,9 +1456,14 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
-                                             'field1': {'description': 'nominal field, encodes color.',
+                                             'field1': {'description': 'nominal field, encodes color, x-axis.',
                                                         'type': 'string'},
-                                             'field2': {'description': 'nominal field, encodes y-axis.',
+                                             'field2': {'description': 'nominal field, encodes y-axis, x-axis — the '
+                                                                       'JOIN KEY on this table: the column holding the '
+                                                                       'shared record id (e.g. a subject or patient '
+                                                                       'id). Both sides of a join must name columns '
+                                                                       'holding the SAME identifiers, or nothing '
+                                                                       'matches.',
                                                         'type': 'string'}},
                               'required': ['entity', 'field1', 'field2'],
                               'type': 'object'}},
@@ -1339,7 +1477,12 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'the proportion of <dimension2> for each <dimension1>?',
                'name': 'vis_016_stacked_bar_proportion_stacked_normalized',
                'parameters': {'additionalProperties': False,
-                              'properties': {'dimension1': {'description': 'cube nominal dimension, encodes x-axis.',
+                              'properties': {'dimension1': {'description': 'cube nominal dimension, encodes x-axis — '
+                                                                           'the JOIN KEY on this table: the column '
+                                                                           'holding the shared record id (e.g. a '
+                                                                           'subject or patient id). Both sides of a '
+                                                                           'join must name columns holding the SAME '
+                                                                           'identifiers, or nothing matches.',
                                                             'type': 'string'},
                                              'dimension2': {'description': 'cube nominal dimension, encodes color.',
                                                             'type': 'string'},
@@ -1644,12 +1787,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'required': ['entity'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[table] Joins two related entities and displays the combined data as a table. Design: '
-                              'Cross-entity join enriches the view by combining fields from two related entities. '
-                              'Requires a valid foreign-key relationship. Tasks: Explore combined data from two '
-                              'related entities; retrieve specific values; identify anomalies and extremes. Query '
-                              'patterns: What does the combined data of <E1> and <E2> look like?; Make a table that '
-                              'combines <E1> and <E2>.',
+ {'function': {'description': 'The secondary data entity (table) to join with.',
                'name': 'vis_036_table_join',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
@@ -1660,11 +1798,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'required': ['entity1', 'entity2'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[table] Finds which related entity record has the highest count of associated records, '
-                              'displayed as a ranked table with bar indicators. Design: Groups by foreign key, counts, '
-                              'ranks, and highlights the top record with color encoding. Bar marks on the count column '
-                              'provide visual comparison. Tasks: Identify the record with the most associated '
-                              'entities; compare counts across records. Query patterns: What <E2> has the most <E1>?',
+ {'function': {'description': 'The secondary data entity (table) to join with.',
                'name': 'vis_037_table_join_count_ranked',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
@@ -1684,21 +1818,18 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
-                                             'field': {'description': 'quantitative field, encodes x-axis.',
+                                             'field': {'description': 'quantitative field, encodes x-axis, color.',
                                                        'type': 'string'}},
                               'required': ['entity', 'field'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[table] Joins two entities, computes the maximum of a quantitative field per group, and '
-                              'ranks the results in a table with bar indicators. Design: Cross-entity join followed by '
-                              'group-level max aggregation. Highlights the top record with color encoding. Tasks: '
-                              'Identify which related record has the largest aggregated value; compare across groups. '
-                              'Query patterns: What Record in <E2> has the largest <E1> <E1.F:q>?',
+ {'function': {'description': 'The secondary data entity (table) to join with.',
                'name': 'vis_039_table_join_max_ranked',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field': {'description': 'quantitative field, encodes x-axis.',
+                                             'entity1_field': {'description': 'quantitative field, encodes x-axis, '
+                                                                              'color.',
                                                                'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
                                                                         'with.',
@@ -1716,21 +1847,18 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
-                                             'field': {'description': 'any type field.', 'type': 'string'}},
+                                             'field': {'description': 'quantitative field, encodes color.',
+                                                       'type': 'string'}},
                               'required': ['entity', 'field'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[table] Joins two entities, computes the minimum of a quantitative field per group, and '
-                              'ranks the results in a table with conditional formatting. Design: Cross-entity join '
-                              'followed by group-level min aggregation. Highlights the top record with background '
-                              'color via rect mark. Tasks: Identify which related record has the smallest aggregated '
-                              'value; compare across groups. Query patterns: What Record in <E2> has the smallest <E1> '
-                              '<E1.F:q>?',
+ {'function': {'description': 'The secondary data entity (table) to join with.',
                'name': 'vis_041_table_join_min_ranked',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field': {'description': 'quantitative field, encodes color.',
+                                                               'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
                                                                         'with.',
                                                          'type': 'string'}},
@@ -1759,7 +1887,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
-                                             'field': {'description': 'nominal field, encodes text label.',
+                                             'field': {'description': 'quantitative field, encodes text label.',
                                                        'type': 'string'}},
                               'required': ['entity', 'field'],
                               'type': 'object'}},
@@ -1790,7 +1918,8 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
-                                             'field1': {'description': 'nominal field, encodes text label, x-axis, x2.',
+                                             'field1': {'description': 'quantitative field, encodes text label, '
+                                                                       'x-axis, x2.',
                                                         'type': 'string'},
                                              'field2': {'description': 'nominal field, encodes text label.',
                                                         'type': 'string'}},
@@ -1806,7 +1935,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
-                                             'field': {'description': 'nominal field, encodes text label.',
+                                             'field': {'description': 'nominal field, encodes color, text label.',
                                                        'type': 'string'}},
                               'required': ['entity', 'field'],
                               'type': 'object'}},
@@ -1892,30 +2021,37 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'required': ['entity', 'dimension'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[line] Survival curve from an event log — a table with one row per event, a subject id, '
-                              'an event-type column and a numeric time column. Given a start event type and an end '
-                              "event type, derives each subject's elapsed time between them and plots the falling "
-                              'fraction of subjects that have not yet reached the end event. Design: Survival time is '
-                              'not stored anywhere; it is reconstructed as the gap between two events for the same '
-                              'subject, so the template groups the event log by subject id and rolls it up to one row '
-                              'each before computing anything. The subject id is only a grouping key and is never '
-                              'encoded, so its cardinality does not matter. IMPORTANT: this is a crude survival curve, '
-                              'not a Kaplan-Meier estimate. Subjects with no end event are kept in the denominator but '
-                              'contribute no drop, which assumes every one of them was followed for the whole window. '
-                              'A true Kaplan-Meier estimator reweights by the number still at risk at each event time; '
-                              'that needs a cumulative product and per-time at-risk counts, which the gramma',
+ {'function': {'description': 'The secondary data entity (table) to join with. MAY be the same table as another entity '
+                              'here, when one table carries both roles.',
                'name': 'vis_052_line_survival',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
-                                                                        'with.',
+                                                                        'with. MAY be the same table as another entity '
+                                                                        'here, when one table carries both roles.',
                                                          'type': 'string'},
-                                             'entity2_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity2_field2': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity2_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
                                              'entity2_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
                                                                        'name) — one of the values actually present in '
@@ -1945,33 +2081,120 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                                            'value3'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[line] Survival curves split by a nominal field as recorded at the start event, from an '
-                              'event log — one row per event, with a subject id, an event-type column and a numeric '
-                              "time column. Given a start and an end event type, derives each subject's elapsed time "
-                              'between them and plots one curve per category. The stratifier is read once, from the '
-                              "subject's start event, so each subject falls in exactly one group and the groups add "
-                              'back up to the whole cohort. This is the default way to split a survival curve. Design: '
-                              "An event-level column has no single value per subject: a subject's recorded value can "
-                              'differ between the event that starts the clock and the event that stops it. This '
-                              'template reads it once, at the start event, which is what makes the groups a partition: '
-                              'reading it per event would split a subject whose value changed into two rows, one with '
-                              'a start and no end (read as censored) and one with an end and no start (dropped), '
-                              'losing the death from both. The value is nulled everywhere but the start event and ',
+ {'function': {'description': 'The secondary data entity (table) to join with. MAY be the same table as another entity '
+                              'here, when one table carries both roles.',
                'name': 'vis_053_line_survival_baseline',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'entity1_field4': {'description': 'nominal field, encodes color.',
                                                                 'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
-                                                                        'with.',
+                                                                        'with. MAY be the same table as another entity '
+                                                                        'here, when one table carries both roles.',
                                                          'type': 'string'},
-                                             'entity2_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity2_field2': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity2_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
                                              'entity2_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'grouping': {'description': "OPTIONAL. Combine the stratifier's values "
+                                                                         'into a few named strata. Omit it entirely '
+                                                                         'for one stratum per distinct value, which is '
+                                                                         'usually what you want. Supply it when the '
+                                                                         'request compares GROUPS of values rather '
+                                                                         "than every value ('white versus all other "
+                                                                         "races'), or splits a number at a threshold "
+                                                                         "('over 65'). At most 10 strata.",
+                                                          'properties': {'cuts': {'description': 'Quantitative only. '
+                                                                                                 'Ascending '
+                                                                                                 'thresholds; N cuts '
+                                                                                                 'make N+1 buckets, '
+                                                                                                 'each half-open on '
+                                                                                                 'the right — a cut at '
+                                                                                                 '65 puts 65 in the '
+                                                                                                 'upper bucket.',
+                                                                                  'items': {'type': 'number'},
+                                                                                  'type': 'array'},
+                                                                         'groups': {'description': 'Nominal only. One '
+                                                                                                   'entry per stratum. '
+                                                                                                   'Values not listed '
+                                                                                                   'in any group fall '
+                                                                                                   "into 'other'.",
+                                                                                    'items': {'properties': {'label': {'description': 'What '
+                                                                                                                                      'this '
+                                                                                                                                      'stratum '
+                                                                                                                                      'is '
+                                                                                                                                      'called '
+                                                                                                                                      'in '
+                                                                                                                                      'the '
+                                                                                                                                      'legend.',
+                                                                                                                       'type': 'string'},
+                                                                                                             'values': {'description': 'Column '
+                                                                                                                                       'values '
+                                                                                                                                       'in '
+                                                                                                                                       'this '
+                                                                                                                                       'stratum, '
+                                                                                                                                       'copied '
+                                                                                                                                       'EXACTLY '
+                                                                                                                                       'as '
+                                                                                                                                       'they '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'the '
+                                                                                                                                       'data, '
+                                                                                                                                       'including '
+                                                                                                                                       'case. '
+                                                                                                                                       'A '
+                                                                                                                                       'value '
+                                                                                                                                       'may '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'only '
+                                                                                                                                       'one '
+                                                                                                                                       'group.',
+                                                                                                                        'items': {'type': 'string'},
+                                                                                                                        'type': 'array'}},
+                                                                                              'required': ['label',
+                                                                                                           'values'],
+                                                                                              'type': 'object'},
+                                                                                    'type': 'array'},
+                                                                         'other': {'description': 'Nominal only. Label '
+                                                                                                  'for values no group '
+                                                                                                  'claims; null to '
+                                                                                                  'leave them out of '
+                                                                                                  'the chart entirely. '
+                                                                                                  'Defaults to '
+                                                                                                  "'Other'.",
+                                                                                   'type': ['string', 'null']},
+                                                                         'type': {'description': "'nominal' to combine "
+                                                                                                 'named values, '
+                                                                                                 "'quantitative' to "
+                                                                                                 'cut a number at '
+                                                                                                 'thresholds. Must '
+                                                                                                 'match the stratifier '
+                                                                                                 "column's type.",
+                                                                                  'enum': ['nominal', 'quantitative'],
+                                                                                  'type': 'string'}},
+                                                          'required': ['type'],
+                                                          'type': 'object'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
                                                                        'name) — one of the values actually present in '
                                                                        'the relevant column, copied exactly, including '
@@ -2001,34 +2224,120 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                                            'value3'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[line] Survival curves split by each value of a multi-value (delimited) field as '
-                              'recorded at the start event, from an event log — one row per event, with a subject id, '
-                              "an event-type column and a numeric time column. Expands the start event's list so a "
-                              "subject counts toward every value it listed then, derives each subject's elapsed time "
-                              'between a start and an end event type, and plots one curve per value. Design: For '
-                              'set-valued columns such as tumor locations, where one subject can belong to several '
-                              "categories at once. An event-level column has no single value per subject: a subject's "
-                              'recorded value can differ between the event that starts the clock and the event that '
-                              'stops it. The list is taken from the start event only, so a category first recorded '
-                              "later is absent by design — that is what keeps each subject's whole timeline "
-                              'attributable to the categories it started with. `unnest` runs after the per-subject '
-                              'rollup, on a row that is already one-per-subject, so it multiplies nothing that has '
-                              'been counted. The c',
+ {'function': {'description': 'The secondary data entity (table) to join with. MAY be the same table as another entity '
+                              'here, when one table carries both roles.',
                'name': 'vis_054_line_survival_baseline_multivalue',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'entity1_field4': {'description': 'nominal field, encodes color.',
                                                                 'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
-                                                                        'with.',
+                                                                        'with. MAY be the same table as another entity '
+                                                                        'here, when one table carries both roles.',
                                                          'type': 'string'},
-                                             'entity2_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity2_field2': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity2_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
                                              'entity2_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'grouping': {'description': "OPTIONAL. Combine the stratifier's values "
+                                                                         'into a few named strata. Omit it entirely '
+                                                                         'for one stratum per distinct value, which is '
+                                                                         'usually what you want. Supply it when the '
+                                                                         'request compares GROUPS of values rather '
+                                                                         "than every value ('white versus all other "
+                                                                         "races'), or splits a number at a threshold "
+                                                                         "('over 65'). At most 10 strata.",
+                                                          'properties': {'cuts': {'description': 'Quantitative only. '
+                                                                                                 'Ascending '
+                                                                                                 'thresholds; N cuts '
+                                                                                                 'make N+1 buckets, '
+                                                                                                 'each half-open on '
+                                                                                                 'the right — a cut at '
+                                                                                                 '65 puts 65 in the '
+                                                                                                 'upper bucket.',
+                                                                                  'items': {'type': 'number'},
+                                                                                  'type': 'array'},
+                                                                         'groups': {'description': 'Nominal only. One '
+                                                                                                   'entry per stratum. '
+                                                                                                   'Values not listed '
+                                                                                                   'in any group fall '
+                                                                                                   "into 'other'.",
+                                                                                    'items': {'properties': {'label': {'description': 'What '
+                                                                                                                                      'this '
+                                                                                                                                      'stratum '
+                                                                                                                                      'is '
+                                                                                                                                      'called '
+                                                                                                                                      'in '
+                                                                                                                                      'the '
+                                                                                                                                      'legend.',
+                                                                                                                       'type': 'string'},
+                                                                                                             'values': {'description': 'Column '
+                                                                                                                                       'values '
+                                                                                                                                       'in '
+                                                                                                                                       'this '
+                                                                                                                                       'stratum, '
+                                                                                                                                       'copied '
+                                                                                                                                       'EXACTLY '
+                                                                                                                                       'as '
+                                                                                                                                       'they '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'the '
+                                                                                                                                       'data, '
+                                                                                                                                       'including '
+                                                                                                                                       'case. '
+                                                                                                                                       'A '
+                                                                                                                                       'value '
+                                                                                                                                       'may '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'only '
+                                                                                                                                       'one '
+                                                                                                                                       'group.',
+                                                                                                                        'items': {'type': 'string'},
+                                                                                                                        'type': 'array'}},
+                                                                                              'required': ['label',
+                                                                                                           'values'],
+                                                                                              'type': 'object'},
+                                                                                    'type': 'array'},
+                                                                         'other': {'description': 'Nominal only. Label '
+                                                                                                  'for values no group '
+                                                                                                  'claims; null to '
+                                                                                                  'leave them out of '
+                                                                                                  'the chart entirely. '
+                                                                                                  'Defaults to '
+                                                                                                  "'Other'.",
+                                                                                   'type': ['string', 'null']},
+                                                                         'type': {'description': "'nominal' to combine "
+                                                                                                 'named values, '
+                                                                                                 "'quantitative' to "
+                                                                                                 'cut a number at '
+                                                                                                 'thresholds. Must '
+                                                                                                 'match the stratifier '
+                                                                                                 "column's type.",
+                                                                                  'enum': ['nominal', 'quantitative'],
+                                                                                  'type': 'string'}},
+                                                          'required': ['type'],
+                                                          'type': 'object'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
                                                                        'name) — one of the values actually present in '
                                                                        'the relevant column, copied exactly, including '
@@ -2058,33 +2367,120 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                                            'value3'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[line] Survival curves split by every value a subject ever recorded, from an event log '
-                              '— one row per event, with a subject id, an event-type column and a numeric time column. '
-                              'A subject joins every group whose value appears anywhere on its timeline and carries '
-                              'its whole elapsed time into each, so the cohorts OVERLAP and the groups do not add up '
-                              'to the whole. Use this only when the request is explicitly about ever having a value; '
-                              'otherwise prefer the variant that reads the field at the start event, which partitions '
-                              "the cohort. Design: An event-level column has no single value per subject: a subject's "
-                              'recorded value can differ between the event that starts the clock and the event that '
-                              "stops it. This template treats it as membership: the subject's span is broadcast onto "
-                              'each of its event rows, then re-grouped per (subject, value), so one subject can appear '
-                              'in several curves and a single death is attributed to each group the subject belongs '
-                              'to. The groups therefore cannot be reconciled with the unstratified curve ',
+ {'function': {'description': 'The secondary data entity (table) to join with. MAY be the same table as another entity '
+                              'here, when one table carries both roles.',
                'name': 'vis_055_line_survival_ever',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'entity1_field4': {'description': 'nominal field, encodes color.',
                                                                 'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
-                                                                        'with.',
+                                                                        'with. MAY be the same table as another entity '
+                                                                        'here, when one table carries both roles.',
                                                          'type': 'string'},
-                                             'entity2_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity2_field2': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity2_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
                                              'entity2_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'grouping': {'description': "OPTIONAL. Combine the stratifier's values "
+                                                                         'into a few named strata. Omit it entirely '
+                                                                         'for one stratum per distinct value, which is '
+                                                                         'usually what you want. Supply it when the '
+                                                                         'request compares GROUPS of values rather '
+                                                                         "than every value ('white versus all other "
+                                                                         "races'), or splits a number at a threshold "
+                                                                         "('over 65'). At most 10 strata.",
+                                                          'properties': {'cuts': {'description': 'Quantitative only. '
+                                                                                                 'Ascending '
+                                                                                                 'thresholds; N cuts '
+                                                                                                 'make N+1 buckets, '
+                                                                                                 'each half-open on '
+                                                                                                 'the right — a cut at '
+                                                                                                 '65 puts 65 in the '
+                                                                                                 'upper bucket.',
+                                                                                  'items': {'type': 'number'},
+                                                                                  'type': 'array'},
+                                                                         'groups': {'description': 'Nominal only. One '
+                                                                                                   'entry per stratum. '
+                                                                                                   'Values not listed '
+                                                                                                   'in any group fall '
+                                                                                                   "into 'other'.",
+                                                                                    'items': {'properties': {'label': {'description': 'What '
+                                                                                                                                      'this '
+                                                                                                                                      'stratum '
+                                                                                                                                      'is '
+                                                                                                                                      'called '
+                                                                                                                                      'in '
+                                                                                                                                      'the '
+                                                                                                                                      'legend.',
+                                                                                                                       'type': 'string'},
+                                                                                                             'values': {'description': 'Column '
+                                                                                                                                       'values '
+                                                                                                                                       'in '
+                                                                                                                                       'this '
+                                                                                                                                       'stratum, '
+                                                                                                                                       'copied '
+                                                                                                                                       'EXACTLY '
+                                                                                                                                       'as '
+                                                                                                                                       'they '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'the '
+                                                                                                                                       'data, '
+                                                                                                                                       'including '
+                                                                                                                                       'case. '
+                                                                                                                                       'A '
+                                                                                                                                       'value '
+                                                                                                                                       'may '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'only '
+                                                                                                                                       'one '
+                                                                                                                                       'group.',
+                                                                                                                        'items': {'type': 'string'},
+                                                                                                                        'type': 'array'}},
+                                                                                              'required': ['label',
+                                                                                                           'values'],
+                                                                                              'type': 'object'},
+                                                                                    'type': 'array'},
+                                                                         'other': {'description': 'Nominal only. Label '
+                                                                                                  'for values no group '
+                                                                                                  'claims; null to '
+                                                                                                  'leave them out of '
+                                                                                                  'the chart entirely. '
+                                                                                                  'Defaults to '
+                                                                                                  "'Other'.",
+                                                                                   'type': ['string', 'null']},
+                                                                         'type': {'description': "'nominal' to combine "
+                                                                                                 'named values, '
+                                                                                                 "'quantitative' to "
+                                                                                                 'cut a number at '
+                                                                                                 'thresholds. Must '
+                                                                                                 'match the stratifier '
+                                                                                                 "column's type.",
+                                                                                  'enum': ['nominal', 'quantitative'],
+                                                                                  'type': 'string'}},
+                                                          'required': ['type'],
+                                                          'type': 'object'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
                                                                        'name) — one of the values actually present in '
                                                                        'the relevant column, copied exactly, including '
@@ -2114,34 +2510,120 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                                            'value3'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[line] Survival curves split by every value of a multi-value (delimited) field a '
-                              'subject ever recorded, from an event log — one row per event, with a subject id, an '
-                              'event-type column and a numeric time column. Expands the delimited column on every '
-                              'event, so a subject joins each value listed at any point and carries its whole elapsed '
-                              'time into all of them. Cohorts OVERLAP twice over — across values of one event and '
-                              'across events — and do not add up. Design: For set-valued columns where membership at '
-                              'any point is the question. An event-level column has no single value per subject: a '
-                              "subject's recorded value can differ between the event that starts the clock and the "
-                              'event that stops it. `unnest` runs first, on the event rows, so the per-subject rollup '
-                              'sees one row per (subject, value) pair and a subject joins every value it ever listed. '
-                              'Overlap compounds: a subject contributes to one group per distinct value across its '
-                              'whole timeline, so cohort sizes sum to well above the subject count and a single death '
-                              'is attr',
+ {'function': {'description': 'The secondary data entity (table) to join with. MAY be the same table as another entity '
+                              'here, when one table carries both roles.',
                'name': 'vis_056_line_survival_ever_multivalue',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'entity1_field4': {'description': 'nominal field, encodes color.',
                                                                 'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
-                                                                        'with.',
+                                                                        'with. MAY be the same table as another entity '
+                                                                        'here, when one table carries both roles.',
                                                          'type': 'string'},
-                                             'entity2_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity2_field2': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity2_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
                                              'entity2_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'grouping': {'description': "OPTIONAL. Combine the stratifier's values "
+                                                                         'into a few named strata. Omit it entirely '
+                                                                         'for one stratum per distinct value, which is '
+                                                                         'usually what you want. Supply it when the '
+                                                                         'request compares GROUPS of values rather '
+                                                                         "than every value ('white versus all other "
+                                                                         "races'), or splits a number at a threshold "
+                                                                         "('over 65'). At most 10 strata.",
+                                                          'properties': {'cuts': {'description': 'Quantitative only. '
+                                                                                                 'Ascending '
+                                                                                                 'thresholds; N cuts '
+                                                                                                 'make N+1 buckets, '
+                                                                                                 'each half-open on '
+                                                                                                 'the right — a cut at '
+                                                                                                 '65 puts 65 in the '
+                                                                                                 'upper bucket.',
+                                                                                  'items': {'type': 'number'},
+                                                                                  'type': 'array'},
+                                                                         'groups': {'description': 'Nominal only. One '
+                                                                                                   'entry per stratum. '
+                                                                                                   'Values not listed '
+                                                                                                   'in any group fall '
+                                                                                                   "into 'other'.",
+                                                                                    'items': {'properties': {'label': {'description': 'What '
+                                                                                                                                      'this '
+                                                                                                                                      'stratum '
+                                                                                                                                      'is '
+                                                                                                                                      'called '
+                                                                                                                                      'in '
+                                                                                                                                      'the '
+                                                                                                                                      'legend.',
+                                                                                                                       'type': 'string'},
+                                                                                                             'values': {'description': 'Column '
+                                                                                                                                       'values '
+                                                                                                                                       'in '
+                                                                                                                                       'this '
+                                                                                                                                       'stratum, '
+                                                                                                                                       'copied '
+                                                                                                                                       'EXACTLY '
+                                                                                                                                       'as '
+                                                                                                                                       'they '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'the '
+                                                                                                                                       'data, '
+                                                                                                                                       'including '
+                                                                                                                                       'case. '
+                                                                                                                                       'A '
+                                                                                                                                       'value '
+                                                                                                                                       'may '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'only '
+                                                                                                                                       'one '
+                                                                                                                                       'group.',
+                                                                                                                        'items': {'type': 'string'},
+                                                                                                                        'type': 'array'}},
+                                                                                              'required': ['label',
+                                                                                                           'values'],
+                                                                                              'type': 'object'},
+                                                                                    'type': 'array'},
+                                                                         'other': {'description': 'Nominal only. Label '
+                                                                                                  'for values no group '
+                                                                                                  'claims; null to '
+                                                                                                  'leave them out of '
+                                                                                                  'the chart entirely. '
+                                                                                                  'Defaults to '
+                                                                                                  "'Other'.",
+                                                                                   'type': ['string', 'null']},
+                                                                         'type': {'description': "'nominal' to combine "
+                                                                                                 'named values, '
+                                                                                                 "'quantitative' to "
+                                                                                                 'cut a number at '
+                                                                                                 'thresholds. Must '
+                                                                                                 'match the stratifier '
+                                                                                                 "column's type.",
+                                                                                  'enum': ['nominal', 'quantitative'],
+                                                                                  'type': 'string'}},
+                                                          'required': ['type'],
+                                                          'type': 'object'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
                                                                        'name) — one of the values actually present in '
                                                                        'the relevant column, copied exactly, including '
@@ -2171,38 +2653,599 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                                            'value3'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[line] Survival curves split by a field in a RELATED table, from an event log — one row '
-                              'per event, with a subject id, an event-type column and a numeric time column. Joins the '
-                              "event log to a second entity on the relationship between them, derives each subject's "
-                              'elapsed time between a start and an end event type, and plots one curve per value of '
-                              'the related field. Both tables must name the subject-id column they share, which is '
-                              'what the join runs on. Use this when the attribute to split by does not live on the '
-                              'event log itself — a treatment protocol, an enrolling site, a cohort assignment '
-                              'recorded elsewhere. A subject with several related records joins a group for each, so '
-                              'the cohorts OVERLAP and the groups do not add up to the whole. Design: The stratifier '
-                              'is not a column of the event log, so the two entities are joined first, on the '
-                              'subject-id column each side names. A declared relationship is not required and usually '
-                              'does not exist: the tables carrying a stratifier are typically *siblings* of the event '
-                              'log ',
+ {'function': {'description': 'An additional data entity (table) to join with (entity3). MAY be the same table as '
+                              'another entity here, when one table carries both roles.',
                'name': 'vis_057_line_survival_related',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
                                                                         'with.',
                                                          'type': 'string'},
                                              'entity2_field': {'description': 'nominal field, encodes color.',
                                                                'type': 'string'},
-                                             'entity2_field1': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
                                              'entity3': {'description': 'An additional data entity (table) to join '
-                                                                        'with (entity3).',
+                                                                        'with (entity3). MAY be the same table as '
+                                                                        'another entity here, when one table carries '
+                                                                        'both roles.',
                                                          'type': 'string'},
-                                             'entity3_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity3_field2': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity3_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity3_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
                                              'entity3_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'grouping': {'description': "OPTIONAL. Combine the stratifier's values "
+                                                                         'into a few named strata. Omit it entirely '
+                                                                         'for one stratum per distinct value, which is '
+                                                                         'usually what you want. Supply it when the '
+                                                                         'request compares GROUPS of values rather '
+                                                                         "than every value ('white versus all other "
+                                                                         "races'), or splits a number at a threshold "
+                                                                         "('over 65'). At most 10 strata.",
+                                                          'properties': {'cuts': {'description': 'Quantitative only. '
+                                                                                                 'Ascending '
+                                                                                                 'thresholds; N cuts '
+                                                                                                 'make N+1 buckets, '
+                                                                                                 'each half-open on '
+                                                                                                 'the right — a cut at '
+                                                                                                 '65 puts 65 in the '
+                                                                                                 'upper bucket.',
+                                                                                  'items': {'type': 'number'},
+                                                                                  'type': 'array'},
+                                                                         'groups': {'description': 'Nominal only. One '
+                                                                                                   'entry per stratum. '
+                                                                                                   'Values not listed '
+                                                                                                   'in any group fall '
+                                                                                                   "into 'other'.",
+                                                                                    'items': {'properties': {'label': {'description': 'What '
+                                                                                                                                      'this '
+                                                                                                                                      'stratum '
+                                                                                                                                      'is '
+                                                                                                                                      'called '
+                                                                                                                                      'in '
+                                                                                                                                      'the '
+                                                                                                                                      'legend.',
+                                                                                                                       'type': 'string'},
+                                                                                                             'values': {'description': 'Column '
+                                                                                                                                       'values '
+                                                                                                                                       'in '
+                                                                                                                                       'this '
+                                                                                                                                       'stratum, '
+                                                                                                                                       'copied '
+                                                                                                                                       'EXACTLY '
+                                                                                                                                       'as '
+                                                                                                                                       'they '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'the '
+                                                                                                                                       'data, '
+                                                                                                                                       'including '
+                                                                                                                                       'case. '
+                                                                                                                                       'A '
+                                                                                                                                       'value '
+                                                                                                                                       'may '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'only '
+                                                                                                                                       'one '
+                                                                                                                                       'group.',
+                                                                                                                        'items': {'type': 'string'},
+                                                                                                                        'type': 'array'}},
+                                                                                              'required': ['label',
+                                                                                                           'values'],
+                                                                                              'type': 'object'},
+                                                                                    'type': 'array'},
+                                                                         'other': {'description': 'Nominal only. Label '
+                                                                                                  'for values no group '
+                                                                                                  'claims; null to '
+                                                                                                  'leave them out of '
+                                                                                                  'the chart entirely. '
+                                                                                                  'Defaults to '
+                                                                                                  "'Other'.",
+                                                                                   'type': ['string', 'null']},
+                                                                         'type': {'description': "'nominal' to combine "
+                                                                                                 'named values, '
+                                                                                                 "'quantitative' to "
+                                                                                                 'cut a number at '
+                                                                                                 'thresholds. Must '
+                                                                                                 'match the stratifier '
+                                                                                                 "column's type.",
+                                                                                  'enum': ['nominal', 'quantitative'],
+                                                                                  'type': 'string'}},
+                                                          'required': ['type'],
+                                                          'type': 'object'},
+                                             'value1': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'},
+                                             'value2': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'},
+                                             'value3': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'}},
+                              'required': ['entity1',
+                                           'entity2',
+                                           'entity3',
+                                           'entity1_field1',
+                                           'entity1_field2',
+                                           'entity1_field3',
+                                           'entity2_field1',
+                                           'entity2_field',
+                                           'entity3_field1',
+                                           'entity3_field2',
+                                           'entity3_field3',
+                                           'value1',
+                                           'value2',
+                                           'value3'],
+                              'type': 'object'}},
+  'type': 'function'},
+ {'function': {'description': 'An additional data entity (table) to join with (entity3). MAY be the same table as '
+                              'another entity here, when one table carries both roles.',
+               'name': 'vis_058_line_survival_related_numeric',
+               'parameters': {'additionalProperties': False,
+                              'properties': {'entity1': {'description': 'The primary data entity (table).',
+                                                         'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'entity2': {'description': 'The secondary data entity (table) to join '
+                                                                        'with.',
+                                                         'type': 'string'},
+                                             'entity2_field': {'description': 'quantitative field, encodes color.',
+                                                               'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity3': {'description': 'An additional data entity (table) to join '
+                                                                        'with (entity3). MAY be the same table as '
+                                                                        'another entity here, when one table carries '
+                                                                        'both roles.',
+                                                         'type': 'string'},
+                                             'entity3_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity3_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
+                                             'entity3_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'grouping': {'description': "OPTIONAL. Combine the stratifier's values "
+                                                                         'into a few named strata. Omit it entirely '
+                                                                         'for one stratum per distinct value, which is '
+                                                                         'usually what you want. Supply it when the '
+                                                                         'request compares GROUPS of values rather '
+                                                                         "than every value ('white versus all other "
+                                                                         "races'), or splits a number at a threshold "
+                                                                         "('over 65'). At most 10 strata.",
+                                                          'properties': {'cuts': {'description': 'Quantitative only. '
+                                                                                                 'Ascending '
+                                                                                                 'thresholds; N cuts '
+                                                                                                 'make N+1 buckets, '
+                                                                                                 'each half-open on '
+                                                                                                 'the right — a cut at '
+                                                                                                 '65 puts 65 in the '
+                                                                                                 'upper bucket.',
+                                                                                  'items': {'type': 'number'},
+                                                                                  'type': 'array'},
+                                                                         'groups': {'description': 'Nominal only. One '
+                                                                                                   'entry per stratum. '
+                                                                                                   'Values not listed '
+                                                                                                   'in any group fall '
+                                                                                                   "into 'other'.",
+                                                                                    'items': {'properties': {'label': {'description': 'What '
+                                                                                                                                      'this '
+                                                                                                                                      'stratum '
+                                                                                                                                      'is '
+                                                                                                                                      'called '
+                                                                                                                                      'in '
+                                                                                                                                      'the '
+                                                                                                                                      'legend.',
+                                                                                                                       'type': 'string'},
+                                                                                                             'values': {'description': 'Column '
+                                                                                                                                       'values '
+                                                                                                                                       'in '
+                                                                                                                                       'this '
+                                                                                                                                       'stratum, '
+                                                                                                                                       'copied '
+                                                                                                                                       'EXACTLY '
+                                                                                                                                       'as '
+                                                                                                                                       'they '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'the '
+                                                                                                                                       'data, '
+                                                                                                                                       'including '
+                                                                                                                                       'case. '
+                                                                                                                                       'A '
+                                                                                                                                       'value '
+                                                                                                                                       'may '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'only '
+                                                                                                                                       'one '
+                                                                                                                                       'group.',
+                                                                                                                        'items': {'type': 'string'},
+                                                                                                                        'type': 'array'}},
+                                                                                              'required': ['label',
+                                                                                                           'values'],
+                                                                                              'type': 'object'},
+                                                                                    'type': 'array'},
+                                                                         'other': {'description': 'Nominal only. Label '
+                                                                                                  'for values no group '
+                                                                                                  'claims; null to '
+                                                                                                  'leave them out of '
+                                                                                                  'the chart entirely. '
+                                                                                                  'Defaults to '
+                                                                                                  "'Other'.",
+                                                                                   'type': ['string', 'null']},
+                                                                         'type': {'description': "'nominal' to combine "
+                                                                                                 'named values, '
+                                                                                                 "'quantitative' to "
+                                                                                                 'cut a number at '
+                                                                                                 'thresholds. Must '
+                                                                                                 'match the stratifier '
+                                                                                                 "column's type.",
+                                                                                  'enum': ['nominal', 'quantitative'],
+                                                                                  'type': 'string'}},
+                                                          'required': ['type'],
+                                                          'type': 'object'},
+                                             'value1': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'},
+                                             'value2': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'},
+                                             'value3': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'}},
+                              'required': ['entity1',
+                                           'entity2',
+                                           'entity3',
+                                           'entity1_field1',
+                                           'entity1_field2',
+                                           'entity1_field3',
+                                           'entity2_field1',
+                                           'entity2_field',
+                                           'entity3_field1',
+                                           'entity3_field2',
+                                           'entity3_field3',
+                                           'value1',
+                                           'value2',
+                                           'value3'],
+                              'type': 'object'}},
+  'type': 'function'},
+ {'function': {'description': 'An additional data entity (table) to join with (entity3). MAY be the same table as '
+                              'another entity here, when one table carries both roles.',
+               'name': 'vis_059_line_survival_related_multivalue',
+               'parameters': {'additionalProperties': False,
+                              'properties': {'entity1': {'description': 'The primary data entity (table).',
+                                                         'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'entity2': {'description': 'The secondary data entity (table) to join '
+                                                                        'with.',
+                                                         'type': 'string'},
+                                             'entity2_field': {'description': 'nominal field, encodes color.',
+                                                               'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity3': {'description': 'An additional data entity (table) to join '
+                                                                        'with (entity3). MAY be the same table as '
+                                                                        'another entity here, when one table carries '
+                                                                        'both roles.',
+                                                         'type': 'string'},
+                                             'entity3_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity3_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
+                                             'entity3_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'grouping': {'description': "OPTIONAL. Combine the stratifier's values "
+                                                                         'into a few named strata. Omit it entirely '
+                                                                         'for one stratum per distinct value, which is '
+                                                                         'usually what you want. Supply it when the '
+                                                                         'request compares GROUPS of values rather '
+                                                                         "than every value ('white versus all other "
+                                                                         "races'), or splits a number at a threshold "
+                                                                         "('over 65'). At most 10 strata.",
+                                                          'properties': {'cuts': {'description': 'Quantitative only. '
+                                                                                                 'Ascending '
+                                                                                                 'thresholds; N cuts '
+                                                                                                 'make N+1 buckets, '
+                                                                                                 'each half-open on '
+                                                                                                 'the right — a cut at '
+                                                                                                 '65 puts 65 in the '
+                                                                                                 'upper bucket.',
+                                                                                  'items': {'type': 'number'},
+                                                                                  'type': 'array'},
+                                                                         'groups': {'description': 'Nominal only. One '
+                                                                                                   'entry per stratum. '
+                                                                                                   'Values not listed '
+                                                                                                   'in any group fall '
+                                                                                                   "into 'other'.",
+                                                                                    'items': {'properties': {'label': {'description': 'What '
+                                                                                                                                      'this '
+                                                                                                                                      'stratum '
+                                                                                                                                      'is '
+                                                                                                                                      'called '
+                                                                                                                                      'in '
+                                                                                                                                      'the '
+                                                                                                                                      'legend.',
+                                                                                                                       'type': 'string'},
+                                                                                                             'values': {'description': 'Column '
+                                                                                                                                       'values '
+                                                                                                                                       'in '
+                                                                                                                                       'this '
+                                                                                                                                       'stratum, '
+                                                                                                                                       'copied '
+                                                                                                                                       'EXACTLY '
+                                                                                                                                       'as '
+                                                                                                                                       'they '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'the '
+                                                                                                                                       'data, '
+                                                                                                                                       'including '
+                                                                                                                                       'case. '
+                                                                                                                                       'A '
+                                                                                                                                       'value '
+                                                                                                                                       'may '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'only '
+                                                                                                                                       'one '
+                                                                                                                                       'group.',
+                                                                                                                        'items': {'type': 'string'},
+                                                                                                                        'type': 'array'}},
+                                                                                              'required': ['label',
+                                                                                                           'values'],
+                                                                                              'type': 'object'},
+                                                                                    'type': 'array'},
+                                                                         'other': {'description': 'Nominal only. Label '
+                                                                                                  'for values no group '
+                                                                                                  'claims; null to '
+                                                                                                  'leave them out of '
+                                                                                                  'the chart entirely. '
+                                                                                                  'Defaults to '
+                                                                                                  "'Other'.",
+                                                                                   'type': ['string', 'null']},
+                                                                         'type': {'description': "'nominal' to combine "
+                                                                                                 'named values, '
+                                                                                                 "'quantitative' to "
+                                                                                                 'cut a number at '
+                                                                                                 'thresholds. Must '
+                                                                                                 'match the stratifier '
+                                                                                                 "column's type.",
+                                                                                  'enum': ['nominal', 'quantitative'],
+                                                                                  'type': 'string'}},
+                                                          'required': ['type'],
+                                                          'type': 'object'},
+                                             'value1': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'},
+                                             'value2': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'},
+                                             'value3': {'description': 'A literal data VALUE to match (not a column '
+                                                                       'name) — one of the values actually present in '
+                                                                       'the relevant column, copied exactly, including '
+                                                                       'case and spacing.',
+                                                        'type': 'string'}},
+                              'required': ['entity1',
+                                           'entity2',
+                                           'entity3',
+                                           'entity1_field1',
+                                           'entity1_field2',
+                                           'entity1_field3',
+                                           'entity2_field1',
+                                           'entity2_field',
+                                           'entity3_field1',
+                                           'entity3_field2',
+                                           'entity3_field3',
+                                           'value1',
+                                           'value2',
+                                           'value3'],
+                              'type': 'object'}},
+  'type': 'function'},
+ {'function': {'description': 'An additional data entity (table) to join with (entity3). MAY be the same table as '
+                              'another entity here, when one table carries both roles.',
+               'name': 'vis_060_line_survival_ever_matching',
+               'parameters': {'additionalProperties': False,
+                              'properties': {'entity1': {'description': 'The primary data entity (table).',
+                                                         'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'entity2': {'description': 'The secondary data entity (table) to join '
+                                                                        'with.',
+                                                         'type': 'string'},
+                                             'entity2_field': {'description': 'nominal field, encodes color.',
+                                                               'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity3': {'description': 'An additional data entity (table) to join '
+                                                                        'with (entity3). MAY be the same table as '
+                                                                        'another entity here, when one table carries '
+                                                                        'both roles.',
+                                                         'type': 'string'},
+                                             'entity3_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity3_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
+                                             'entity3_field3': {'description': 'quantitative field.', 'type': 'string'},
+                                             'grouping': {'description': "OPTIONAL. Combine the stratifier's values "
+                                                                         'into a few named strata. Omit it entirely '
+                                                                         'for one stratum per distinct value, which is '
+                                                                         'usually what you want. Supply it when the '
+                                                                         'request compares GROUPS of values rather '
+                                                                         "than every value ('white versus all other "
+                                                                         "races'), or splits a number at a threshold "
+                                                                         "('over 65'). At most 10 strata.",
+                                                          'properties': {'cuts': {'description': 'Quantitative only. '
+                                                                                                 'Ascending '
+                                                                                                 'thresholds; N cuts '
+                                                                                                 'make N+1 buckets, '
+                                                                                                 'each half-open on '
+                                                                                                 'the right — a cut at '
+                                                                                                 '65 puts 65 in the '
+                                                                                                 'upper bucket.',
+                                                                                  'items': {'type': 'number'},
+                                                                                  'type': 'array'},
+                                                                         'groups': {'description': 'Nominal only. One '
+                                                                                                   'entry per stratum. '
+                                                                                                   'Values not listed '
+                                                                                                   'in any group fall '
+                                                                                                   "into 'other'.",
+                                                                                    'items': {'properties': {'label': {'description': 'What '
+                                                                                                                                      'this '
+                                                                                                                                      'stratum '
+                                                                                                                                      'is '
+                                                                                                                                      'called '
+                                                                                                                                      'in '
+                                                                                                                                      'the '
+                                                                                                                                      'legend.',
+                                                                                                                       'type': 'string'},
+                                                                                                             'values': {'description': 'Column '
+                                                                                                                                       'values '
+                                                                                                                                       'in '
+                                                                                                                                       'this '
+                                                                                                                                       'stratum, '
+                                                                                                                                       'copied '
+                                                                                                                                       'EXACTLY '
+                                                                                                                                       'as '
+                                                                                                                                       'they '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'the '
+                                                                                                                                       'data, '
+                                                                                                                                       'including '
+                                                                                                                                       'case. '
+                                                                                                                                       'A '
+                                                                                                                                       'value '
+                                                                                                                                       'may '
+                                                                                                                                       'appear '
+                                                                                                                                       'in '
+                                                                                                                                       'only '
+                                                                                                                                       'one '
+                                                                                                                                       'group.',
+                                                                                                                        'items': {'type': 'string'},
+                                                                                                                        'type': 'array'}},
+                                                                                              'required': ['label',
+                                                                                                           'values'],
+                                                                                              'type': 'object'},
+                                                                                    'type': 'array'},
+                                                                         'other': {'description': 'Nominal only. Label '
+                                                                                                  'for values no group '
+                                                                                                  'claims; null to '
+                                                                                                  'leave them out of '
+                                                                                                  'the chart entirely. '
+                                                                                                  'Defaults to '
+                                                                                                  "'Other'.",
+                                                                                   'type': ['string', 'null']},
+                                                                         'type': {'description': "'nominal' to combine "
+                                                                                                 'named values, '
+                                                                                                 "'quantitative' to "
+                                                                                                 'cut a number at '
+                                                                                                 'thresholds. Must '
+                                                                                                 'match the stratifier '
+                                                                                                 "column's type.",
+                                                                                  'enum': ['nominal', 'quantitative'],
+                                                                                  'type': 'string'}},
+                                                          'required': ['type'],
+                                                          'type': 'object'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
                                                                        'name) — one of the values actually present in '
                                                                        'the relevant column, copied exactly, including '
@@ -2234,97 +3277,48 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                                            'value3'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[line] Survival curves split by each value of a multi-value (delimited) field in a '
-                              'RELATED table, from an event log — one row per event, with a subject id, an event-type '
-                              'column and a numeric time column. Joins the event log to a second entity on the '
-                              "subject-id column each side names, expands that entity's semicolon-delimited column so "
-                              "one record listing several values counts toward each of them, derives every subject's "
-                              'elapsed time between a start and an end event type, and plots one curve per value. Use '
-                              'this when the attribute to split by lives in another table AND that column holds a set '
-                              'rather than a single value — the agents making up a chemotherapy regimen, the sites one '
-                              'course of radiation covered, the conditions listed on a diagnosis record. The cohorts '
-                              'OVERLAP: a subject joins a group for every value listed on any of its related records, '
-                              'so the groups do not add up to the whole. Design: The cross-table and multi-value '
-                              'readings composed: the stratifier is neither a column of the event log nor single-va',
-               'name': 'vis_058_line_survival_related_multivalue',
+ {'function': {'description': 'An additional data entity (table) to join with (entity3). MAY be the same table as '
+                              'another entity here, when one table carries both roles.',
+               'name': 'vis_061_line_survival_presence',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
                                                                         'with.',
                                                          'type': 'string'},
-                                             'entity2_field': {'description': 'nominal field, encodes color.',
-                                                               'type': 'string'},
-                                             'entity2_field1': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
                                              'entity3': {'description': 'An additional data entity (table) to join '
-                                                                        'with (entity3).',
+                                                                        'with (entity3). MAY be the same table as '
+                                                                        'another entity here, when one table carries '
+                                                                        'both roles.',
                                                          'type': 'string'},
-                                             'entity3_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity3_field2': {'description': 'nominal field.', 'type': 'string'},
-                                             'entity3_field3': {'description': 'quantitative field.', 'type': 'string'},
-                                             'value1': {'description': 'A literal data VALUE to match (not a column '
-                                                                       'name) — one of the values actually present in '
-                                                                       'the relevant column, copied exactly, including '
-                                                                       'case and spacing.',
-                                                        'type': 'string'},
-                                             'value2': {'description': 'A literal data VALUE to match (not a column '
-                                                                       'name) — one of the values actually present in '
-                                                                       'the relevant column, copied exactly, including '
-                                                                       'case and spacing.',
-                                                        'type': 'string'},
-                                             'value3': {'description': 'A literal data VALUE to match (not a column '
-                                                                       'name) — one of the values actually present in '
-                                                                       'the relevant column, copied exactly, including '
-                                                                       'case and spacing.',
-                                                        'type': 'string'}},
-                              'required': ['entity1',
-                                           'entity2',
-                                           'entity3',
-                                           'entity1_field1',
-                                           'entity1_field2',
-                                           'entity1_field3',
-                                           'entity2_field',
-                                           'entity2_field1',
-                                           'entity3_field1',
-                                           'entity3_field2',
-                                           'entity3_field3',
-                                           'value1',
-                                           'value2',
-                                           'value3'],
-                              'type': 'object'}},
-  'type': 'function'},
- {'function': {'description': '[line] Survival curves split by PRESENCE OR ABSENCE of the subject in a second table, '
-                              'from an event log — one row per event, with a subject id, an event-type column and a '
-                              "numeric time column. Answers 'did this subject receive/undergo/enrol in the thing that "
-                              "table records' — radiation, surgery, a protocol — where the fact is the existence of a "
-                              'row, not the value of any column. No field from the second table is named or plotted; '
-                              'only the shared subject-id column on each side. Exactly two curves, and they PARTITION '
-                              'the cohort: every subject is in one or the other, so the two groups add back to the '
-                              'whole and reconcile with the unstratified curve. Design: Use this, not the '
-                              'related-field variant, when the question is whether a subject has any record in a table '
-                              'rather than which value it holds. Absence is unanswerable from an ordinary join, which '
-                              "drops exactly the rows that would have answered 'no', so the second table is first "
-                              'reduced to one row per subject and LEFT joined; a subject with no match keeps a null '
-                              'mark',
-               'name': 'vis_059_line_survival_presence',
-               'parameters': {'additionalProperties': False,
-                              'properties': {'entity1': {'description': 'The primary data entity (table).',
-                                                         'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
-                                             'entity2': {'description': 'The secondary data entity (table) to join '
-                                                                        'with.',
-                                                         'type': 'string'},
-                                             'entity2_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity3': {'description': 'An additional data entity (table) to join '
-                                                                        'with (entity3).',
-                                                         'type': 'string'},
-                                             'entity3_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity3_field2': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity3_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity3_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
                                              'entity3_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
                                                                        'name) — one of the values actually present in '
@@ -2356,39 +3350,58 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                                            'value3'],
                               'type': 'object'}},
   'type': 'function'},
- {'function': {'description': '[line] Survival curves for the 2x2 CROSS of presence in two other tables, from an event '
-                              'log — one row per event, with a subject id, an event-type column and a numeric time '
-                              'column. Produces up to four curves — second table only, third table only, both, neither '
-                              '— for questions about combinations of treatments or procedures recorded in separate '
-                              'tables. No field from either extra table is named or plotted; only the shared '
-                              'subject-id column on each side. The four groups PARTITION the cohort: every subject '
-                              'falls in exactly one cell, so they add back to the whole. Use the single-table presence '
-                              'variant when only one table is in question — four curves for a two-way question is '
-                              'harder to read for no gain. Design: Two LEFT joins, each against the other table '
-                              'reduced to one row per subject, so absence stays visible and neither join multiplies '
-                              "event rows. Each cell is labelled with the tables it names — '<E2> + <E3>', '<E2> "
-                              "only', '<E3> only', 'Neither' — rather than a pair of flags, so no decoding is "
-                              'required. Presence i',
-               'name': 'vis_060_line_survival_presence_2x2',
+ {'function': {'description': 'An additional data entity (table) to join with (entity4). MAY be the same table as '
+                              'another entity here, when one table carries both roles.',
+               'name': 'vis_062_line_survival_presence_2x2',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity1': {'description': 'The primary data entity (table).',
                                                          'type': 'string'},
-                                             'entity1_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field2': {'description': 'any type field.', 'type': 'string'},
-                                             'entity1_field3': {'description': 'any type field.', 'type': 'string'},
+                                             'entity1_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity1_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value1, value2 name.',
+                                                                'type': 'string'},
+                                             'entity1_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'entity2': {'description': 'The secondary data entity (table) to join '
                                                                         'with.',
                                                          'type': 'string'},
-                                             'entity2_field1': {'description': 'any type field.', 'type': 'string'},
+                                             'entity2_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
                                              'entity3': {'description': 'An additional data entity (table) to join '
                                                                         'with (entity3).',
                                                          'type': 'string'},
-                                             'entity3_field1': {'description': 'any type field.', 'type': 'string'},
+                                             'entity3_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
                                              'entity4': {'description': 'An additional data entity (table) to join '
-                                                                        'with (entity4).',
+                                                                        'with (entity4). MAY be the same table as '
+                                                                        'another entity here, when one table carries '
+                                                                        'both roles.',
                                                          'type': 'string'},
-                                             'entity4_field1': {'description': 'any type field.', 'type': 'string'},
-                                             'entity4_field2': {'description': 'nominal field.', 'type': 'string'},
+                                             'entity4_field1': {'description': 'nominal field — the JOIN KEY on this '
+                                                                               'table: the column holding the shared '
+                                                                               'record id (e.g. a subject or patient '
+                                                                               'id). Both sides of a join must name '
+                                                                               'columns holding the SAME identifiers, '
+                                                                               'or nothing matches.',
+                                                                'type': 'string'},
+                                             'entity4_field2': {'description': 'nominal field — the column whose '
+                                                                               'values value3 name.',
+                                                                'type': 'string'},
                                              'entity4_field3': {'description': 'quantitative field.', 'type': 'string'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
                                                                        'name) — one of the values actually present in '
@@ -2432,15 +3445,15 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'measure is mapped directly with no re-aggregation. The marginal filter is expanded from '
                               "the per-request schema's dimension list, so this template works for any cube. The "
                               'marginal broken out here is time x status, so each subject is counted exactly once and '
-                              'the cells add up to the cohort. The elapsed-time dimension must be quantitative. Cubes '
-                              "frequently bin time as strings ('0', '11', '>=60'), and there is no way to turn those "
-                              'in',
-               'name': 'vis_061_line_survival_cube',
+                              'the cells add up to the cohort. The elapsed-time dimension must be quantitative.',
+               'name': 'vis_063_line_survival_cube',
                'parameters': {'additionalProperties': False,
                               'properties': {'dimension1': {'description': 'cube quantitative dimension, encodes '
                                                                            'x-axis.',
                                                             'type': 'string'},
-                                             'dimension2': {'description': 'cube nominal dimension.', 'type': 'string'},
+                                             'dimension2': {'description': 'cube nominal dimension — the column whose '
+                                                                           'values value1, value2 name.',
+                                                            'type': 'string'},
                                              'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
                                              'value1': {'description': 'A literal data VALUE to match (not a column '
@@ -2466,16 +3479,18 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'directly with no re-aggregation. The marginal filter is expanded from the per-request '
                               "schema's dimension list, so this template works for any cube. The marginal broken out "
                               'here is time x status x stratifier, so every subject lands in exactly one stratum and '
-                              'one time point. Because a cube dimension is a per-subject attribute rather than an '
-                              'event-level column, this has none of the time-varying ambiguity the line-level '
-                              'stratified c',
-               'name': 'vis_062_line_survival_cube_stratified',
+                              'one time point. Tasks: Compare event-free survival across groups; see which stratum '
+                              'falls fastest and how many subjects each curve rests on.',
+               'name': 'vis_064_line_survival_cube_stratified',
                'parameters': {'additionalProperties': False,
                               'properties': {'dimension1': {'description': 'cube quantitative dimension, encodes '
                                                                            'x-axis.',
                                                             'type': 'string'},
-                                             'dimension2': {'description': 'cube nominal dimension.', 'type': 'string'},
-                                             'dimension3': {'description': 'cube nominal dimension, encodes color.',
+                                             'dimension2': {'description': 'cube nominal dimension — the column whose '
+                                                                           'values value1, value2 name.',
+                                                            'type': 'string'},
+                                             'dimension3': {'description': 'cube nominal dimension, encodes color, '
+                                                                           'text label.',
                                                             'type': 'string'},
                                              'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2500,7 +3515,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'in the co-occurrence of two fields; compare counts across combinations; find '
                               'correlations. Query patterns: Are there any clusters with respect to <E> counts of '
                               '<F1:n> and <F2:n>?; Make a heatmap of <E> <F1:n> and <F2:n>.',
-               'name': 'vis_063_heatmap_count',
+               'name': 'vis_065_heatmap_count',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2518,7 +3533,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'readability. Tasks: Identify patterns in the average value across two categorical '
                               'dimensions; find combinations with extreme values. Query patterns: What is the average '
                               '<F1:q> for each <F2:n> and <F3:n>?',
-               'name': 'vis_064_heatmap_avg',
+               'name': 'vis_066_heatmap_avg',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2541,7 +3556,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'across two dimensions; compare values across combinations. Query patterns: Are there '
                               'clusters in the measure across two dimensions?; Make a heatmap across two categorical '
                               'dimensions.',
-               'name': 'vis_065_heatmap_basic',
+               'name': 'vis_067_heatmap_basic',
                'parameters': {'additionalProperties': False,
                               'properties': {'dimension1': {'description': 'cube nominal dimension, encodes x-axis.',
                                                             'type': 'string'},
@@ -2559,7 +3574,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'assess whether the relationship between two quantitative fields differs across groups. '
                               'Query patterns: Are there clusters of <E> <F1:q> and <F2:q> values across different '
                               '<F3:n> groups?',
-               'name': 'vis_066_grouped_scatter_by_color',
+               'name': 'vis_068_grouped_scatter_by_color',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2577,11 +3592,11 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'span from bin start to bin end on x, with count on y. Tasks: Characterize the shape of '
                               'a distribution; identify modes, skewness, and gaps. Query patterns: What is the '
                               'distribution of <F:q>?; Make a histogram of <F:q>?',
-               'name': 'vis_067_histogram_distribution',
+               'name': 'vis_069_histogram_distribution',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
-                                             'field': {'description': 'any type field.', 'type': 'string'}},
+                                             'field': {'description': 'quantitative field.', 'type': 'string'}},
                               'required': ['entity', 'field'],
                               'type': 'object'}},
   'type': 'function'},
@@ -2591,7 +3606,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'smooth estimate is more informative than binning. Tasks: Characterize the shape of a '
                               'distribution; identify modes and overall density patterns. Query patterns: What is the '
                               'distribution of <F:q>?',
-               'name': 'vis_068_area_density',
+               'name': 'vis_070_area_density',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2605,7 +3620,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'datasets (50 or fewer values) where individual observations are meaningful and '
                               'overplotting is minimal. Tasks: Characterize the distribution; identify individual '
                               'values, clusters, and outliers. Query patterns: What is the distribution of <F:q>?',
-               'name': 'vis_069_dot_distribution',
+               'name': 'vis_071_dot_distribution',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2621,7 +3636,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'layering. Tasks: Compare distribution shapes across groups; identify shifts in central '
                               'tendency or spread. Query patterns: Is the distribution of <F1:q> similar for each '
                               '<F2:n>?',
-               'name': 'vis_070_grouped_area_density',
+               'name': 'vis_072_grouped_area_density',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2638,7 +3653,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'small datasets (50 or fewer values per group). Tasks: Compare distributions across '
                               'groups; identify clusters and outliers within each group. Query patterns: Is the '
                               'distribution of <F1:q> similar for each <F2:n>?',
-               'name': 'vis_071_grouped_dot_distribution',
+               'name': 'vis_073_grouped_dot_distribution',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2656,7 +3671,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'a field; determine how many records have valid values and what proportion. Query '
                               'patterns: How many <E> records have a non-null <F:q|o|n>?; What percentage of <E> '
                               'records have a non-null <F:q|o|n>?',
-               'name': 'vis_072_table_count_null_nonnull',
+               'name': 'vis_074_table_count_null_nonnull',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2672,7 +3687,7 @@ TOOL_DEFS = [{'function': {'description': '[barchart] Counts entities grouped by
                               'Assess data quality; determine how many records are missing a value and what '
                               'proportion. Query patterns: How many <E> records have a null <F:q|o|n>?; What '
                               'percentage of <E> records have a null <F:q|o|n>?',
-               'name': 'vis_073_table_count_null',
+               'name': 'vis_075_table_count_null',
                'parameters': {'additionalProperties': False,
                               'properties': {'entity': {'description': 'The data entity (table) to visualize.',
                                                         'type': 'string'},
@@ -2767,6 +3782,7 @@ TOOL_DISPATCH = {'vis_000_barchart_count_vert_grouped': (0, {'entity': 'E', 'fie
                                      'entity2_field1': 'E2.F1',
                                      'entity2_field2': 'E2.F2',
                                      'entity2_field3': 'E2.F3',
+                                     'grouping': 'GROUP',
                                      'value1': 'V1',
                                      'value2': 'V2',
                                      'value3': 'V3'}),
@@ -2780,6 +3796,7 @@ TOOL_DISPATCH = {'vis_000_barchart_count_vert_grouped': (0, {'entity': 'E', 'fie
                                                 'entity2_field1': 'E2.F1',
                                                 'entity2_field2': 'E2.F2',
                                                 'entity2_field3': 'E2.F3',
+                                                'grouping': 'GROUP',
                                                 'value1': 'V1',
                                                 'value2': 'V2',
                                                 'value3': 'V3'}),
@@ -2793,6 +3810,7 @@ TOOL_DISPATCH = {'vis_000_barchart_count_vert_grouped': (0, {'entity': 'E', 'fie
                                  'entity2_field1': 'E2.F1',
                                  'entity2_field2': 'E2.F2',
                                  'entity2_field3': 'E2.F3',
+                                 'grouping': 'GROUP',
                                  'value1': 'V1',
                                  'value2': 'V2',
                                  'value3': 'V3'}),
@@ -2806,6 +3824,7 @@ TOOL_DISPATCH = {'vis_000_barchart_count_vert_grouped': (0, {'entity': 'E', 'fie
                                             'entity2_field1': 'E2.F1',
                                             'entity2_field2': 'E2.F2',
                                             'entity2_field3': 'E2.F3',
+                                            'grouping': 'GROUP',
                                             'value1': 'V1',
                                             'value2': 'V2',
                                             'value3': 'V3'}),
@@ -2821,10 +3840,27 @@ TOOL_DISPATCH = {'vis_000_barchart_count_vert_grouped': (0, {'entity': 'E', 'fie
                                     'entity3_field1': 'E3.F1',
                                     'entity3_field2': 'E3.F2',
                                     'entity3_field3': 'E3.F3',
+                                    'grouping': 'GROUP',
                                     'value1': 'V1',
                                     'value2': 'V2',
                                     'value3': 'V3'}),
- 'vis_058_line_survival_related_multivalue': (58,
+ 'vis_058_line_survival_related_numeric': (58,
+                                           {'entity1': 'E1',
+                                            'entity1_field1': 'E1.F1',
+                                            'entity1_field2': 'E1.F2',
+                                            'entity1_field3': 'E1.F3',
+                                            'entity2': 'E2',
+                                            'entity2_field': 'E2.F',
+                                            'entity2_field1': 'E2.F1',
+                                            'entity3': 'E3',
+                                            'entity3_field1': 'E3.F1',
+                                            'entity3_field2': 'E3.F2',
+                                            'entity3_field3': 'E3.F3',
+                                            'grouping': 'GROUP',
+                                            'value1': 'V1',
+                                            'value2': 'V2',
+                                            'value3': 'V3'}),
+ 'vis_059_line_survival_related_multivalue': (59,
                                               {'entity1': 'E1',
                                                'entity1_field1': 'E1.F1',
                                                'entity1_field2': 'E1.F2',
@@ -2836,10 +3872,27 @@ TOOL_DISPATCH = {'vis_000_barchart_count_vert_grouped': (0, {'entity': 'E', 'fie
                                                'entity3_field1': 'E3.F1',
                                                'entity3_field2': 'E3.F2',
                                                'entity3_field3': 'E3.F3',
+                                               'grouping': 'GROUP',
                                                'value1': 'V1',
                                                'value2': 'V2',
                                                'value3': 'V3'}),
- 'vis_059_line_survival_presence': (59,
+ 'vis_060_line_survival_ever_matching': (60,
+                                         {'entity1': 'E1',
+                                          'entity1_field1': 'E1.F1',
+                                          'entity1_field2': 'E1.F2',
+                                          'entity1_field3': 'E1.F3',
+                                          'entity2': 'E2',
+                                          'entity2_field': 'E2.F',
+                                          'entity2_field1': 'E2.F1',
+                                          'entity3': 'E3',
+                                          'entity3_field1': 'E3.F1',
+                                          'entity3_field2': 'E3.F2',
+                                          'entity3_field3': 'E3.F3',
+                                          'grouping': 'GROUP',
+                                          'value1': 'V1',
+                                          'value2': 'V2',
+                                          'value3': 'V3'}),
+ 'vis_061_line_survival_presence': (61,
                                     {'entity1': 'E1',
                                      'entity1_field1': 'E1.F1',
                                      'entity1_field2': 'E1.F2',
@@ -2853,7 +3906,7 @@ TOOL_DISPATCH = {'vis_000_barchart_count_vert_grouped': (0, {'entity': 'E', 'fie
                                      'value1': 'V1',
                                      'value2': 'V2',
                                      'value3': 'V3'}),
- 'vis_060_line_survival_presence_2x2': (60,
+ 'vis_062_line_survival_presence_2x2': (62,
                                         {'entity1': 'E1',
                                          'entity1_field1': 'E1.F1',
                                          'entity1_field2': 'E1.F2',
@@ -2869,30 +3922,30 @@ TOOL_DISPATCH = {'vis_000_barchart_count_vert_grouped': (0, {'entity': 'E', 'fie
                                          'value1': 'V1',
                                          'value2': 'V2',
                                          'value3': 'V3'}),
- 'vis_061_line_survival_cube': (61,
+ 'vis_063_line_survival_cube': (63,
                                 {'dimension1': 'D1',
                                  'dimension2': 'D2',
                                  'entity': 'E',
                                  'value1': 'V1',
                                  'value2': 'V2'}),
- 'vis_062_line_survival_cube_stratified': (62,
+ 'vis_064_line_survival_cube_stratified': (64,
                                            {'dimension1': 'D1',
                                             'dimension2': 'D2',
                                             'dimension3': 'D3',
                                             'entity': 'E',
                                             'value1': 'V1',
                                             'value2': 'V2'}),
- 'vis_063_heatmap_count': (63, {'entity': 'E', 'field1': 'F1', 'field2': 'F2'}),
- 'vis_064_heatmap_avg': (64, {'entity': 'E', 'field1': 'F1', 'field2': 'F2', 'field3': 'F3'}),
- 'vis_065_heatmap_basic': (65, {'dimension1': 'D1', 'dimension2': 'D2', 'entity': 'E'}),
- 'vis_066_grouped_scatter_by_color': (66, {'entity': 'E', 'field1': 'F1', 'field2': 'F2', 'field3': 'F3'}),
- 'vis_067_histogram_distribution': (67, {'entity': 'E', 'field': 'F'}),
- 'vis_068_area_density': (68, {'entity': 'E', 'field': 'F'}),
- 'vis_069_dot_distribution': (69, {'entity': 'E', 'field': 'F'}),
- 'vis_070_grouped_area_density': (70, {'entity': 'E', 'field1': 'F1', 'field2': 'F2'}),
- 'vis_071_grouped_dot_distribution': (71, {'entity': 'E', 'field1': 'F1', 'field2': 'F2'}),
- 'vis_072_table_count_null_nonnull': (72, {'entity': 'E', 'field': 'F'}),
- 'vis_073_table_count_null': (73, {'entity': 'E', 'field': 'F'})}
+ 'vis_065_heatmap_count': (65, {'entity': 'E', 'field1': 'F1', 'field2': 'F2'}),
+ 'vis_066_heatmap_avg': (66, {'entity': 'E', 'field1': 'F1', 'field2': 'F2', 'field3': 'F3'}),
+ 'vis_067_heatmap_basic': (67, {'dimension1': 'D1', 'dimension2': 'D2', 'entity': 'E'}),
+ 'vis_068_grouped_scatter_by_color': (68, {'entity': 'E', 'field1': 'F1', 'field2': 'F2', 'field3': 'F3'}),
+ 'vis_069_histogram_distribution': (69, {'entity': 'E', 'field': 'F'}),
+ 'vis_070_area_density': (70, {'entity': 'E', 'field': 'F'}),
+ 'vis_071_dot_distribution': (71, {'entity': 'E', 'field': 'F'}),
+ 'vis_072_grouped_area_density': (72, {'entity': 'E', 'field1': 'F1', 'field2': 'F2'}),
+ 'vis_073_grouped_dot_distribution': (73, {'entity': 'E', 'field1': 'F1', 'field2': 'F2'}),
+ 'vis_074_table_count_null_nonnull': (74, {'entity': 'E', 'field': 'F'}),
+ 'vis_075_table_count_null': (75, {'entity': 'E', 'field': 'F'})}
 
 
 # Tags per tool name (drives per-request template selection)
@@ -2954,23 +4007,104 @@ TOOL_TAGS = {'vis_000_barchart_count_vert_grouped': ['line_item', 'barchart'],
  'vis_055_line_survival_ever': ['line_item', 'line'],
  'vis_056_line_survival_ever_multivalue': ['line_item', 'line'],
  'vis_057_line_survival_related': ['line_item', 'line'],
- 'vis_058_line_survival_related_multivalue': ['line_item', 'line'],
- 'vis_059_line_survival_presence': ['line_item', 'line'],
- 'vis_060_line_survival_presence_2x2': ['line_item', 'line'],
- 'vis_061_line_survival_cube': ['data_cube', 'line'],
- 'vis_062_line_survival_cube_stratified': ['data_cube', 'line'],
- 'vis_063_heatmap_count': ['line_item', 'heatmap'],
- 'vis_064_heatmap_avg': ['line_item', 'heatmap'],
- 'vis_065_heatmap_basic': ['data_cube', 'heatmap'],
- 'vis_066_grouped_scatter_by_color': ['line_item', 'grouped_scatter'],
- 'vis_067_histogram_distribution': ['line_item', 'histogram'],
- 'vis_068_area_density': ['line_item', 'area'],
- 'vis_069_dot_distribution': ['line_item', 'dot'],
- 'vis_070_grouped_area_density': ['line_item', 'grouped_area'],
- 'vis_071_grouped_dot_distribution': ['line_item', 'grouped_dot'],
- 'vis_072_table_count_null_nonnull': ['line_item', 'table'],
- 'vis_073_table_count_null': ['line_item', 'table']}
+ 'vis_058_line_survival_related_numeric': ['line_item', 'line'],
+ 'vis_059_line_survival_related_multivalue': ['line_item', 'line'],
+ 'vis_060_line_survival_ever_matching': ['line_item', 'line'],
+ 'vis_061_line_survival_presence': ['line_item', 'line'],
+ 'vis_062_line_survival_presence_2x2': ['line_item', 'line'],
+ 'vis_063_line_survival_cube': ['data_cube', 'line'],
+ 'vis_064_line_survival_cube_stratified': ['data_cube', 'line'],
+ 'vis_065_heatmap_count': ['line_item', 'heatmap'],
+ 'vis_066_heatmap_avg': ['line_item', 'heatmap'],
+ 'vis_067_heatmap_basic': ['data_cube', 'heatmap'],
+ 'vis_068_grouped_scatter_by_color': ['line_item', 'grouped_scatter'],
+ 'vis_069_histogram_distribution': ['line_item', 'histogram'],
+ 'vis_070_area_density': ['line_item', 'area'],
+ 'vis_071_dot_distribution': ['line_item', 'dot'],
+ 'vis_072_grouped_area_density': ['line_item', 'grouped_area'],
+ 'vis_073_grouped_dot_distribution': ['line_item', 'grouped_dot'],
+ 'vis_074_table_count_null_nonnull': ['line_item', 'table'],
+ 'vis_075_table_count_null': ['line_item', 'table']}
 
+
+# Entity keys per tool name that may share a table with another entity
+# (validate_bindings otherwise requires every entity to be distinct)
+TOOL_SHARED_ENTITIES = {'vis_000_barchart_count_vert_grouped': [],
+ 'vis_001_barchart_count_horiz_grouped': [],
+ 'vis_002_barchart_join_count_vert_grouped': [],
+ 'vis_003_barchart_join_count_horiz_grouped': [],
+ 'vis_004_barchart_basic': [],
+ 'vis_005_barchart_basic': [],
+ 'vis_006_stacked_bar_join_count_vert_stacked_grouped': [],
+ 'vis_007_stacked_bar_join_count_horiz_stacked_grouped': [],
+ 'vis_008_stacked_bar_count_vert_stacked_grouped': [],
+ 'vis_009_stacked_bar_count_horiz_stacked_grouped': [],
+ 'vis_010_stacked_bar_vert_stacked': [],
+ 'vis_011_stacked_bar_count_vert_grouped': [],
+ 'vis_012_stacked_bar_count_horiz_grouped': [],
+ 'vis_013_stacked_bar_grouped': [],
+ 'vis_014_stacked_bar_freq_vert_normalized': [],
+ 'vis_015_stacked_bar_freq_horiz_normalized': [],
+ 'vis_016_stacked_bar_proportion_stacked_normalized': [],
+ 'vis_017_barchart_min_horiz': [],
+ 'vis_018_barchart_min_vert': [],
+ 'vis_019_barchart_max_horiz': [],
+ 'vis_020_barchart_max_vert': [],
+ 'vis_021_barchart_avg_horiz': [],
+ 'vis_022_barchart_avg_vert': [],
+ 'vis_023_barchart_median_horiz': [],
+ 'vis_024_barchart_median_vert': [],
+ 'vis_025_barchart_sum_horiz': [],
+ 'vis_026_barchart_sum_vert': [],
+ 'vis_027_scatterplot_basic': [],
+ 'vis_028_stacked_bar_count_vert_stacked_grouped': [],
+ 'vis_029_stacked_bar_count_horiz_stacked_grouped': [],
+ 'vis_030_circular_proportion_distribution': [],
+ 'vis_031_circular_proportion_distribution': [],
+ 'vis_032_circular_proportion': [],
+ 'vis_033_circular_proportion': [],
+ 'vis_034_table_count': [],
+ 'vis_035_table_raw': [],
+ 'vis_036_table_join': [],
+ 'vis_037_table_join_count_ranked': [],
+ 'vis_038_table_ranked': [],
+ 'vis_039_table_join_max_ranked': [],
+ 'vis_040_table_ranked': [],
+ 'vis_041_table_join_min_ranked': [],
+ 'vis_042_table_sorted': [],
+ 'vis_043_table_min': [],
+ 'vis_044_table_count_sorted_distinct': [],
+ 'vis_045_table_range': [],
+ 'vis_046_table_ranked_mode': [],
+ 'vis_047_table_sum': [],
+ 'vis_048_table_sorted': [],
+ 'vis_049_line_cdf': [],
+ 'vis_050_grouped_line_cdf': [],
+ 'vis_051_line_sorted': [],
+ 'vis_052_line_survival': ['E2'],
+ 'vis_053_line_survival_baseline': ['E2'],
+ 'vis_054_line_survival_baseline_multivalue': ['E2'],
+ 'vis_055_line_survival_ever': ['E2'],
+ 'vis_056_line_survival_ever_multivalue': ['E2'],
+ 'vis_057_line_survival_related': ['E3'],
+ 'vis_058_line_survival_related_numeric': ['E3'],
+ 'vis_059_line_survival_related_multivalue': ['E3'],
+ 'vis_060_line_survival_ever_matching': ['E3'],
+ 'vis_061_line_survival_presence': ['E3'],
+ 'vis_062_line_survival_presence_2x2': ['E4'],
+ 'vis_063_line_survival_cube': [],
+ 'vis_064_line_survival_cube_stratified': [],
+ 'vis_065_heatmap_count': [],
+ 'vis_066_heatmap_avg': [],
+ 'vis_067_heatmap_basic': [],
+ 'vis_068_grouped_scatter_by_color': [],
+ 'vis_069_histogram_distribution': [],
+ 'vis_070_area_density': [],
+ 'vis_071_dot_distribution': [],
+ 'vis_072_grouped_area_density': [],
+ 'vis_073_grouped_dot_distribution': [],
+ 'vis_074_table_count_null_nonnull': [],
+ 'vis_075_table_count_null': []}
 
 # User-facing text per tool name: (title_template, summary_template),
 # with placeholders rewritten to tokens the frontend resolves against
@@ -3090,10 +4224,10 @@ TOOL_TEXT = {'vis_000_barchart_count_vert_grouped': ('Bar chart of the number of
  'vis_039_table_join_max_ranked': ('Table of {entity2} by largest {enc:x}',
                                    'Ranks each {entity2:one} by the largest {field:x} among its {entity1:one} records, '
                                    'with a bar in each row showing the value.'),
- 'vis_040_table_ranked': ('Table of {entity} by {bind:F}',
-                          'Ranks {entity} from the smallest {bind:F} up, highlighting the smallest value.'),
- 'vis_041_table_join_min_ranked': ('Table of {entity2} by smallest {bind:E1.F}',
-                                   'Ranks each {entity2:one} by the smallest {bind:E1.F} among its {entity1:one} '
+ 'vis_040_table_ranked': ('Table of {entity} by {enc:color}',
+                          'Ranks {entity} from the smallest {enc:color} up, highlighting the smallest value.'),
+ 'vis_041_table_join_min_ranked': ('Table of {entity2} by smallest {enc:color}',
+                                   'Ranks each {entity2:one} by the smallest {field:color} among its {entity1:one} '
                                    'records, highlighting the smallest value.'),
  'vis_042_table_sorted': ('Table of {entity} sorted by {enc:x}',
                           'Lists {entity} ordered by {enc:x}, with a bar in each row showing the value.'),
@@ -3105,8 +4239,8 @@ TOOL_TEXT = {'vis_000_barchart_count_vert_grouped': ('Bar chart of the number of
  'vis_045_table_range': ('Table of the {enc:text} range by {enc:text}',
                          'Lists each {enc:text} category with the smallest and largest {field:text} among its '
                          '{entity}, drawn as a range bar.'),
- 'vis_046_table_ranked_mode': ('Table of the number of {entity} by {enc:text}',
-                               'Ranks every {enc:text} value by how many {entity} have it, highlighting the most '
+ 'vis_046_table_ranked_mode': ('Table of the number of {entity} by {enc:color}',
+                               'Ranks every {enc:color} value by how many {entity} have it, highlighting the most '
                                'frequent.'),
  'vis_047_table_sum': ('Table of {enc:text}', 'Displays the overall {enc:text} as a single figure.'),
  'vis_048_table_sorted': ('Table of {enc:x} by {enc:text}',
@@ -3137,48 +4271,55 @@ TOOL_TEXT = {'vis_000_barchart_count_vert_grouped': ('Bar chart of the number of
  'vis_057_line_survival_related': ('Survival curves for {entity1} by {enc:color}',
                                    'Joins {entity1} to {entity2} on the subject id and plots one curve per {enc:color} '
                                    'value; a subject with several {entity2} records joins a group for each.'),
- 'vis_058_line_survival_related_multivalue': ('Survival curves for {entity1} by each {enc:color} value',
+ 'vis_058_line_survival_related_numeric': ('Survival curves for {entity1} by {enc:color}',
+                                           'Joins {entity1} to {entity2} on the subject id and cuts {enc:color} into '
+                                           'buckets at the supplied thresholds, one curve per bucket.'),
+ 'vis_059_line_survival_related_multivalue': ('Survival curves for {entity1} by each {enc:color} value',
                                               'Joins {entity1} to {entity2} on the subject id, expands the delimited '
                                               '{enc:color} column, and plots one curve per value; the curves overlap.'),
- 'vis_059_line_survival_presence': ('Survival curves for {entity1} by presence in {entity2}',
+ 'vis_060_line_survival_ever_matching': ('Survival curves for {entity1} by whether {enc:color} was ever one of the '
+                                         'named values',
+                                         'Splits subjects by whether {entity2} ever records one of the named '
+                                         '{enc:color} values for them, against everyone else.'),
+ 'vis_061_line_survival_presence': ('Survival curves for {entity1} by presence in {entity2}',
                                     'Splits subjects by whether {entity2} holds a row for them at all, giving two '
                                     'curves that together cover the whole cohort.'),
- 'vis_060_line_survival_presence_2x2': ('Survival curves for {entity1} by presence in {entity2} and {bind:E3}',
-                                        'Splits subjects four ways — {entity2} only, {bind:E3} only, both, neither — '
+ 'vis_062_line_survival_presence_2x2': ('Survival curves for {entity1} by presence in {entity2} and {enc:color}',
+                                        'Splits subjects four ways — {entity2} only, {enc:color} only, both, neither — '
                                         'by whether each table holds a row for them.'),
- 'vis_061_line_survival_cube': ('Survival curve over {enc:x}',
+ 'vis_063_line_survival_cube': ('Survival curve over {enc:x}',
                                 'Plots the share of subjects still event-free at each {enc:x} value, counted from the '
                                 "cube's measure; censored time points carry a tick."),
- 'vis_062_line_survival_cube_stratified': ('Survival curves over {enc:x} by {enc:color}',
+ 'vis_064_line_survival_cube_stratified': ('Survival curves over {enc:x} by {enc:color}',
                                            'Plots one curve per {enc:color} value, showing the share still event-free '
                                            'at each {enc:x}; each subject is counted once within its own stratum.'),
- 'vis_063_heatmap_count': ('Heatmap of the number of {entity} by {enc:y} and {enc:x}',
+ 'vis_065_heatmap_count': ('Heatmap of the number of {entity} by {enc:y} and {enc:x}',
                            'Displays the number of {entity} for each pairing of {enc:y} and {enc:x}, as a grid of '
                            'shaded, labelled cells.'),
- 'vis_064_heatmap_avg': ('Heatmap of {enc:color} by {enc:y} and {enc:x}',
+ 'vis_066_heatmap_avg': ('Heatmap of {enc:color} by {enc:y} and {enc:x}',
                          'Displays the mean {field:color} for each pairing of {enc:y} and {enc:x}, as a grid of shaded '
                          'cells.'),
- 'vis_065_heatmap_basic': ('Heatmap of {enc:color} by {enc:x} and {enc:y}',
+ 'vis_067_heatmap_basic': ('Heatmap of {enc:color} by {enc:x} and {enc:y}',
                            'Displays {enc:color} for each pairing of {enc:x} and {enc:y}, as a grid of shaded, '
                            'labelled cells.'),
- 'vis_066_grouped_scatter_by_color': ('Scatterplot of {enc:x} and {enc:y} by {enc:color}',
+ 'vis_068_grouped_scatter_by_color': ('Scatterplot of {enc:x} and {enc:y} by {enc:color}',
                                       'Displays a point for each {entity:one}, positioned by {enc:x} and {enc:y} and '
                                       'coloured by {enc:color}.'),
- 'vis_067_histogram_distribution': ('Histogram of {bind:F}',
+ 'vis_069_histogram_distribution': ('Histogram of {bind:F}',
                                     'Displays how many {entity} fall into each range of {bind:F}, as adjacent bars.'),
- 'vis_068_area_density': ('Density plot of {enc:x}',
+ 'vis_070_area_density': ('Density plot of {enc:x}',
                           'Displays where {entity} concentrate across {enc:x}, as a smooth curve.'),
- 'vis_069_dot_distribution': ('Dot plot of {enc:x}',
+ 'vis_071_dot_distribution': ('Dot plot of {enc:x}',
                               'Displays a point for each {entity:one} along a single {enc:x} axis.'),
- 'vis_070_grouped_area_density': ('Density plot of {enc:x} by {enc:color}',
+ 'vis_072_grouped_area_density': ('Density plot of {enc:x} by {enc:color}',
                                   'Displays where {entity} concentrate across {enc:x}, as one overlapping curve per '
                                   '{enc:color} category.'),
- 'vis_071_grouped_dot_distribution': ('Dot plot of {enc:x} by {enc:y}',
+ 'vis_073_grouped_dot_distribution': ('Dot plot of {enc:x} by {enc:y}',
                                       'Displays a point for each {entity:one} along {enc:x}, with one row per {enc:y} '
                                       'category.'),
- 'vis_072_table_count_null_nonnull': ('Table of {enc:text} completeness',
+ 'vis_074_table_count_null_nonnull': ('Table of {enc:text} completeness',
                                       'Displays how many {entity} have a value for {field:text}, and what percentage '
                                       'of them that is.'),
- 'vis_073_table_count_null': ('Table of missing {enc:text} values',
+ 'vis_075_table_count_null': ('Table of missing {enc:text} values',
                               'Displays how many {entity} are missing {field:text}, and what percentage of them that '
                               'is.')}

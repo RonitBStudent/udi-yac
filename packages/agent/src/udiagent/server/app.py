@@ -488,6 +488,7 @@ def yac_vis_instantiate(
         _load_generated_tools,
         _parse_request_schema,
         instantiate_template,
+        shared_entities_for,
         template_tweakable_params,
         unbound_placeholders,
         validate_bindings,
@@ -548,7 +549,9 @@ def yac_vis_instantiate(
             },
         )
 
-    errors = validate_bindings(spec_template, bindings, schema)
+    errors = validate_bindings(
+        spec_template, bindings, schema, shared_entities=shared_entities_for(request.tool)
+    )
     if errors:
         # errors[0] is already reader-grade prose naming the valid alternatives.
         return JSONResponse(

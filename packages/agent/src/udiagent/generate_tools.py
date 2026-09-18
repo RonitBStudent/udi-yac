@@ -40,9 +40,127 @@ def parse_schema(schema_path: str) -> dict:
 # Template analysis
 # ---------------------------------------------------------------------------
 
+#: A dynamic-stratification grouping tag. Three spellings — `<GROUP:E1.F4>`,
+#: `<GROUPTAG:E2.F>`, `<GROUPLABEL:E2.F>` — and all of them are ONE parameter:
+#: a template that spells the grouping in two places (the per-row match and the
+#: per-subject label) still asks the model for it once. The part after the colon
+#: names the field placeholder being grouped. Mirrors `_GROUPING_PLACEHOLDER` in
+#: `vis_generate`, which resolves them.
+_GROUP_TAG = re.compile(r"GROUP(?:TAG|LABEL)?(\d*)(?::(.+))?$")
+
+#: The grouping parameter, declared as a real object rather than JSON inside a
+#: string. Models are markedly worse at emitting a valid JSON document as a
+#: string value than at filling typed fields, and these tools already ask for
+#: fourteen other arguments — this was the one most likely to come back
+#: malformed, and a malformed one costs the whole tool call.
+#:
+#: Each field carries its own description, so the shape no longer has to be
+#: spelled out in prose that competed with the tool description for the 1024
+#: character budget.
+_GROUPING_SCHEMA = {
+    "type": "object",
+    "description": (
+        "OPTIONAL. Combine the stratifier's values into a few named strata. Omit "
+        "it entirely for one stratum per distinct value, which is usually what "
+        "you want. Supply it when the request compares GROUPS of values rather "
+        "than every value ('white versus all other races'), or splits a number "
+        "at a threshold ('over 65'). At most 10 strata."
+    ),
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": ["nominal", "quantitative"],
+            "description": (
+                "'nominal' to combine named values, 'quantitative' to cut a "
+                "number at thresholds. Must match the stratifier column's type."
+            ),
+        },
+        "groups": {
+            "type": "array",
+            "description": (
+                "Nominal only. One entry per stratum. Values not listed in any "
+                "group fall into 'other'."
+            ),
+            "items": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "description": "What this stratum is called in the legend.",
+                    },
+                    "values": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": (
+                            "Column values in this stratum, copied EXACTLY as "
+                            "they appear in the data, including case. A value "
+                            "may appear in only one group."
+                        ),
+                    },
+                },
+                "required": ["label", "values"],
+            },
+        },
+        "other": {
+            "type": ["string", "null"],
+            "description": (
+                "Nominal only. Label for values no group claims; null to leave "
+                "them out of the chart entirely. Defaults to 'Other'."
+            ),
+        },
+        "cuts": {
+            "type": "array",
+            "items": {"type": "number"},
+            "description": (
+                "Quantitative only. Ascending thresholds; N cuts make N+1 "
+                "buckets, each half-open on the right — a cut at 65 puts 65 in "
+                "the upper bucket."
+            ),
+        },
+    },
+    "required": ["type"],
+}
+
+
 def _extract_placeholders(template_str: str) -> set[str]:
-    """Extract all <placeholder> names from a template string."""
-    return set(re.findall(PLACEHOLDER, template_str))
+    """Extract all <placeholder> names from a template string.
+
+    A `<GROUP:E1.F4>` tag also contributes the field placeholder it names, so
+    that field gets a parameter of its own even in a template that mentions it
+    nowhere else. Without this a stratifier reached only through its grouping
+    would resolve to an empty column name rather than failing.
+    """
+    found = set(re.findall(PLACEHOLDER, template_str))
+    for placeholder in list(found):
+        match = _GROUP_TAG.fullmatch(placeholder)
+        if match and match.group(2):
+            found.add(match.group(2))
+    return found
+
+
+def _grouping_param_key(placeholder: str) -> str | None:
+    """The binding key a grouping placeholder fills, or None if it is not one."""
+    match = _GROUP_TAG.fullmatch(placeholder)
+    return f"GROUP{match.group(1)}" if match else None
+
+
+def _best_placeholders(placeholders) -> list[str]:
+    """One spelling per placeholder base, preferring the one carrying a type.
+
+    A template mentions the same binding both ways — `<E2.F:n>` where the type
+    matters and `<E2.F>` everywhere else — and both come back from
+    `_extract_placeholders`. Walking them in sorted order let the bare spelling
+    claim the parameter first and the typed one be skipped, so the parameter was
+    described as "any type field" even though `validate_bindings` goes on to
+    enforce the suffix. The description was advertising freedom the binding does
+    not have, which for the survival tools left eleven parameters looking alike.
+    """
+    best: dict[str, str] = {}
+    for placeholder in sorted(placeholders):
+        base = placeholder.split(":")[0]
+        if base not in best or (":" in placeholder and ":" not in best[base]):
+            best[base] = placeholder
+    return sorted(best.values())
 
 
 def _derive_tool_name(template: dict, index: int) -> str:
@@ -117,23 +235,69 @@ def _derive_tool_name(template: dict, index: int) -> str:
     return re.sub(r'[^a-z0-9_]', '', name)
 
 
+#: OpenAI's limit on a function description. Enforced here rather than by a
+#: slice at the call site so the budget can be spent deliberately.
+DESCRIPTION_LIMIT = 1024
+
+
+def _fit(text: str, budget: int) -> str:
+    """`text` trimmed to `budget`, cut at a sentence end where one is close.
+
+    Better a section that stops early than one that stops mid-word: a truncated
+    clause reads as an instruction the model then tries to follow.
+    """
+    if len(text) <= budget:
+        return text
+    clipped = text[:budget]
+    stop = max(clipped.rfind(". "), clipped.rfind("? "), clipped.rfind("! "))
+    if stop > budget * 0.6:
+        return clipped[: stop + 1]
+    return clipped.rstrip() + "…"
+
+
 def _build_tool_description(template: dict) -> str:
-    """Build a rich description from template metadata."""
-    parts = []
-    if template.get("chart_type"):
-        parts.append(f"[{template['chart_type']}]")
-    if template.get("description"):
-        parts.append(template["description"])
+    """Build a rich description from template metadata, within the API's limit.
+
+    Budgeted rather than concatenated-then-sliced. The old form let
+    `design_considerations` — the longest and least discriminating section —
+    consume the whole allowance, so a template whose prose ran long lost the end
+    of its own `description` mid-word. The description is what the model selects
+    on, so it is the one part that must always survive intact; everything after
+    it is added only as far as it fits.
+    """
+    head = f"[{template['chart_type']}] " if template.get("chart_type") else ""
+    description = (template.get("description") or "").strip()
+    if len(head) + len(description) > DESCRIPTION_LIMIT:
+        # Caught at authoring time rather than silently clipped at request time,
+        # which is how a template ended up telling the model it "REQUIRES" a
+        # parameter in a sentence the model never saw.
+        print(
+            f"⚠ description for {template.get('name_hint') or template.get('chart_type')} "
+            f"is {len(description)} chars and will be cut at {DESCRIPTION_LIMIT}; "
+            f"move detail into design_considerations."
+        )
+    parts = [head + description if description else head.strip()]
+
+    extras = []
     if template.get("design_considerations"):
-        parts.append(f"Design: {template['design_considerations']}")
+        extras.append(f"Design: {template['design_considerations']}")
     if template.get("tasks"):
-        parts.append(f"Tasks: {template['tasks']}")
+        extras.append(f"Tasks: {template['tasks']}")
     query_templates = template.get("query_templates", [])
     if isinstance(query_templates, str):
         query_templates = [query_templates]
     if query_templates:
-        parts.append(f"Query patterns: {'; '.join(query_templates)}")
-    return " ".join(parts)
+        extras.append(f"Query patterns: {'; '.join(query_templates)}")
+
+    out = parts[0]
+    for extra in extras:
+        remaining = DESCRIPTION_LIMIT - len(out) - 1
+        # Not worth a fragment: a two-word "Design:" stub tells the model less
+        # than leaving the section out.
+        if remaining < 80:
+            break
+        out = f"{out} {_fit(extra, remaining)}"
+    return _fit(out, DESCRIPTION_LIMIT)
 
 
 def _get_field_type_for_placeholder(placeholder: str) -> str | None:
@@ -148,55 +312,21 @@ def _get_field_type_for_placeholder(placeholder: str) -> str | None:
 
 
 def _extract_encoding_info(spec_template: str) -> dict[str, dict]:
-    """Extract encoding roles and declared types for each placeholder from a spec template.
+    """Encoding roles and declared types per placeholder base.
 
-    Parses the spec_template JSON and walks the representation mappings to find
-    which visual encoding (x, y, color, theta, etc.) each placeholder is used in,
-    and what data type the encoding declares.
+    Delegates to :func:`udiagent.vis_generate.placeholder_encoding_info`, which is
+    the same walk `validate_bindings` uses. It used to be a second copy that read
+    only the representation mappings, and when charts began splitting by a derived
+    `stratum` column the copies diverged: the stratifier stopped being described as
+    a nominal field that encodes colour, becoming "any type field." next to a join
+    key described the same way — and the model started binding one to the other.
 
     Returns: dict mapping placeholder base (e.g. "F1", "E2.F") to
-             {"encodings": ["x", ...], "declared_type": "nominal" | "quantitative" | None}
+             {"encodings": ["x", ...], "declared_type": "nominal" | ... | None}
     """
-    info: dict[str, dict] = {}
-    try:
-        spec = json.loads(spec_template)
-    except (json.JSONDecodeError, TypeError):
-        return info
+    from udiagent.vis_generate import placeholder_encoding_info
 
-    rep = spec.get("representation", {})
-    reps = rep if isinstance(rep, list) else [rep]
-    for r in reps:
-        mappings = r.get("mapping", [])
-        if isinstance(mappings, dict):
-            mappings = [mappings]
-        for m in mappings:
-            encoding = m.get("encoding", "")
-            field = m.get("field", "")
-            declared_type = m.get("type")  # "nominal", "quantitative", "ordinal"
-            if not encoding:
-                continue
-            # A field is usually a single placeholder ("<F1>"), but an
-            # aggregated one embeds it in the rollup's output name
-            # ("average <F1>", "<E> count"). Both bind that placeholder to
-            # this encoding; `aggregated` records which kind it was, because
-            # the encoding's own display label already carries the operator.
-            bare = re.fullmatch(PLACEHOLDER, field)
-            found = [bare.group(1)] if bare else re.findall(PLACEHOLDER, field)
-            for ph in found:
-                base = ph.split(":")[0] if ":" in ph else ph
-                if base not in info:
-                    info[base] = {
-                        "encodings": [],
-                        "declared_type": None,
-                        "aggregated": False,
-                    }
-                if encoding not in info[base]["encodings"]:
-                    info[base]["encodings"].append(encoding)
-                if declared_type and info[base]["declared_type"] is None:
-                    info[base]["declared_type"] = declared_type
-                if not bare:
-                    info[base]["aggregated"] = True
-    return info
+    return placeholder_encoding_info(spec_template)
 
 
 _ENTITY_TOKENS = {"E": "{entity}", "E1": "{entity1}", "E2": "{entity2}"}
@@ -263,12 +393,70 @@ _ENCODING_LABELS = {
 }
 
 
-def _build_field_description(field_type: str | None, encoding_info: dict | None) -> str:
+def _add_grouping_param(
+    properties: dict, param_map: dict, seen: set, group_key: str
+) -> None:
+    """Register the optional grouping parameter for one `<GROUP*>` placeholder.
+
+    Deliberately absent from the tool's `required` list — the only parameter that
+    is. Every other one names something the template cannot resolve without, but
+    a grouping's absence is itself an answer: one stratum per value, which is
+    what a stratified chart does until someone asks for something else. Making it
+    required would force the model to invent a grouping for every survival curve.
+    """
+    param_name = "grouping" if group_key == "GROUP" else f"grouping{group_key[5:]}"
+    if param_name in seen:
+        return
+    seen.add(param_name)
+    properties[param_name] = dict(_GROUPING_SCHEMA)
+    param_map[param_name] = group_key
+
+
+def _extract_field_roles(spec_template: str) -> dict[str, str]:
+    """What each field placeholder is FOR: ``{placeholder base: role sentence}``.
+
+    A type and an encoding are not always enough to tell two parameters apart.
+    The survival templates ask each table for its record id and, right beside
+    it, for the column a literal is matched against — both nominal, neither
+    encoded, and so described identically ("nominal field."). The model has
+    swapped them, joining an event log to a status table on
+    `event_type = vital_status`: nothing matches, every curve is empty, and
+    validation sees only columns that exist with the types asked for. Reading
+    the role off the template is what makes the two parameters distinguishable
+    at the point the model fills them in.
+    """
+    from udiagent.vis_generate import join_key_placeholders, value_field_pairs
+
+    roles = {}
+    for base in join_key_placeholders(spec_template):
+        roles[base] = (
+            "the JOIN KEY on this table: the column holding the shared record id "
+            "(e.g. a subject or patient id). Both sides of a join must name "
+            "columns holding the SAME identifiers, or nothing matches"
+        )
+    targets: dict[str, set[str]] = {}
+    for value_key, fields in value_field_pairs(spec_template).items():
+        for base in fields:
+            targets.setdefault(base, set()).add(value_key)
+    for base, value_keys in targets.items():
+        # A join key that is also value-matched keeps the join wording: getting
+        # the join wrong empties the chart, which is the worse failure.
+        if base in roles:
+            continue
+        params = ", ".join(f"value{key[1:]}" for key in sorted(value_keys))
+        roles[base] = f"the column whose values {params} name"
+    return roles
+
+
+def _build_field_description(
+    field_type: str | None, encoding_info: dict | None, role: str | None = None
+) -> str:
     """Build a descriptive string for a field parameter.
 
     Args:
         field_type: Type from placeholder suffix (:n, :q, :o) or None.
         encoding_info: {"encodings": [...], "declared_type": str|None} from spec template.
+        role: What the template uses the binding for (see `_extract_field_roles`).
     """
     # Prefer placeholder suffix type, fall back to declared type from encoding
     resolved_type = field_type
@@ -277,10 +465,13 @@ def _build_field_description(field_type: str | None, encoding_info: dict | None)
     type_str = resolved_type or "any type"
 
     encodings = encoding_info.get("encodings", []) if encoding_info else []
+    text = f"{type_str} field"
     if encodings:
         labels = [_ENCODING_LABELS.get(e, e) for e in encodings]
-        return f"{type_str} field, encodes {', '.join(labels)}."
-    return f"{type_str} field."
+        text += f", encodes {', '.join(labels)}"
+    if role:
+        text += f" — {role}"
+    return text + "."
 
 
 # ---------------------------------------------------------------------------
@@ -302,6 +493,7 @@ def _generate_single_entity_tool(
     tool_name = _derive_tool_name(template, index)
     description = _build_tool_description(template)
     encoding_info = _extract_encoding_info(spec_template)
+    field_roles = _extract_field_roles(spec_template)
 
     properties = {
         "entity": {"type": "string", "description": "The data entity (table) to visualize."},
@@ -313,8 +505,12 @@ def _generate_single_entity_tool(
     # fields; D* are data-cube dimensions (the measure <M> and the <MARGINAL:…>
     # filter are resolved from the schema at runtime, so they get no param).
     seen = set()
-    for ph in sorted(placeholders):
+    for ph in _best_placeholders(placeholders):
         if ph in ("E", "E.url"):
+            continue
+        group_key = _grouping_param_key(ph)
+        if group_key:
+            _add_grouping_param(properties, param_map, seen, group_key)
             continue
         m = re.match(r'(F\d*|D\d*|V\d*)', ph)
         if not m:
@@ -334,7 +530,9 @@ def _generate_single_entity_tool(
         # built above, and shadowing it here used to leak the last parameter's
         # blurb ("any type field.") out as the tool's own description — leaving
         # every single-entity tool with nothing for the model to select on.
-        param_description = _build_field_description(field_type, encoding_info.get(base))
+        param_description = _build_field_description(
+            field_type, encoding_info.get(base), field_roles.get(base)
+        )
         if base.startswith("D"):
             param_description = "cube " + param_description.replace("field", "dimension", 1)
         elif base.startswith("V"):
@@ -357,7 +555,8 @@ def _generate_single_entity_tool(
         "type": "function",
         "function": {
             "name": tool_name,
-            "description": description[:1024],
+            # Already budgeted by _build_tool_description.
+            "description": description,
             "parameters": {
                 "type": "object",
                 "properties": properties,
@@ -388,6 +587,7 @@ def _generate_join_entity_tool(
     tool_name = _derive_tool_name(template, index)
     description = _build_tool_description(template)
     encoding_info = _extract_encoding_info(spec_template)
+    field_roles = _extract_field_roles(spec_template)
 
     # One entity parameter per numbered entity the template actually mentions,
     # rather than a fixed pair: a template can bring in a third table (crossing
@@ -400,17 +600,26 @@ def _generate_join_entity_tool(
         "E1": "The primary data entity (table).",
         "E2": "The secondary data entity (table) to join with.",
     }
+    # Entities the template lets share a table with another. Worth saying out
+    # loud: the model is otherwise told every entity must be distinct, and a
+    # schema that keeps two of these roles on one table (the survival censoring
+    # status beside the stratifier, both per-subject facts) then looks
+    # unchartable, so it binds some other table and the values stop matching.
+    shared = set(template.get("shared_entities") or [])
     properties = {}
     required = []
     param_map = {}
     for key in entity_keys:
         param = f"entity{key[1:]}"
-        properties[param] = {
-            "type": "string",
-            "description": entity_descriptions.get(
-                key, f"An additional data entity (table) to join with ({param})."
-            ),
-        }
+        description = entity_descriptions.get(
+            key, f"An additional data entity (table) to join with ({param})."
+        )
+        if key in shared:
+            description += (
+                " MAY be the same table as another entity here, when one table "
+                "carries both roles."
+            )
+        properties[param] = {"type": "string", "description": description}
         required.append(param)
         param_map[param] = key
 
@@ -419,7 +628,7 @@ def _generate_join_entity_tool(
     skip.update(f"{key}.url" for key in entity_keys)
 
     seen = set()
-    for ph in sorted(placeholders):
+    for ph in _best_placeholders(placeholders):
         if ph in skip:
             continue
 
@@ -427,6 +636,11 @@ def _generate_join_entity_tool(
         # the same side of a join. Collapsing every `E1.F*` onto one name would
         # keep only the first and leave the rest unbound — which resolves to an
         # empty field name rather than an error.
+        group_key = _grouping_param_key(ph)
+        if group_key:
+            _add_grouping_param(properties, param_map, seen, group_key)
+            continue
+
         m = re.match(r'(E\d+)\.(F\d*)', ph)
         if m:
             param_name = f"entity{m.group(1)[1:]}_field{m.group(2)[1:]}"
@@ -452,7 +666,7 @@ def _generate_join_entity_tool(
         else:
             field_type = _get_field_type_for_placeholder(ph)
             param_description = _build_field_description(
-                field_type, encoding_info.get(base)
+                field_type, encoding_info.get(base), field_roles.get(base)
             )
         properties[param_name] = {"type": "string", "description": param_description}
         required.append(param_name)
@@ -462,7 +676,8 @@ def _generate_join_entity_tool(
         "type": "function",
         "function": {
             "name": tool_name,
-            "description": description[:1024],
+            # Already budgeted by _build_tool_description.
+            "description": description,
             "parameters": {
                 "type": "object",
                 "properties": properties,
@@ -505,6 +720,7 @@ def generate(template_sources, output_path: str):
     spec_templates = []
     tool_dispatch = {}
     tool_tags = {}
+    tool_shared_entities = {}
     tool_text = {}
     tool_name_set = {}
     sources_used = []
@@ -548,6 +764,9 @@ def generate(template_sources, output_path: str):
                     template.get("summary_template", ""), encoding_info, "summary"
                 ),
             )
+            tool_shared_entities[tool_name] = list(
+                template.get("shared_entities") or []
+            )
             counter += 1
 
     output = [
@@ -581,6 +800,10 @@ def generate(template_sources, output_path: str):
         '# Tags per tool name (drives per-request template selection)',
         f'TOOL_TAGS = {pprint.pformat(tool_tags, width=120)}',
         '',
+        '',
+        '# Entity keys per tool name that may share a table with another entity',
+        '# (validate_bindings otherwise requires every entity to be distinct)',
+        f'TOOL_SHARED_ENTITIES = {pprint.pformat(tool_shared_entities, width=120)}',
         '',
         '# User-facing text per tool name: (title_template, summary_template),',
         '# with placeholders rewritten to tokens the frontend resolves against',

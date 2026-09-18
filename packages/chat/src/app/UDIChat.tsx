@@ -222,6 +222,12 @@ function UDIChatInner({
         />
         <div className="flex flex-1 min-h-0">
           <div
+            // A popover opened from a chart *in the chat* aligns its left edge
+            // to this column rather than to its trigger, which sits indented
+            // inside a bubble — 320px starting there would spill over the
+            // dashboard. Found with `closest()` from the trigger, so no ref or
+            // context is needed.
+            data-udi-chat-column=""
             className={cn(
               'flex-1 min-w-0 flex flex-col overflow-hidden',
               overviewOpen && 'hidden @min-[1200px]/shell:flex',

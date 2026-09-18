@@ -154,6 +154,26 @@ function templateParams(
   const fallbackEntity = resolveSourceName(spec);
   return template.params.map((descriptor) => {
     const entity = descriptor.entity ?? fallbackEntity;
+
+    // A grouping is not a field swap: its value is the grouping itself, and the
+    // control it needs is decided by the type of the column it cuts rather than
+    // by a list of columns to choose among.
+    if (descriptor.kind === 'grouping') {
+      return {
+        kind: 'grouping' as const,
+        value: descriptor.value,
+        label: descriptor.label || 'groups',
+        param: descriptor.param,
+        placeholder: descriptor.placeholder,
+        stratifier: descriptor.field ?? '',
+        stratifierType: descriptor.fieldType ?? null,
+        entity: entity ?? null,
+      };
+    }
+
+    // Every other parameter binds a column, so its value is a column name. The
+    // guard is for the type only — the agent never sends an object here.
+    const value = typeof descriptor.value === 'string' ? descriptor.value : '';
     const byType =
       descriptor.type === 'quantitative'
         ? quantitativeSourceFields
@@ -164,12 +184,10 @@ function templateParams(
     // The bound field always appears, even when the schema's declared type
     // disagrees with the template's requirement — a Select whose value is absent
     // from its items renders blank, which reads as a broken control.
-    const withCurrent = options.includes(descriptor.value)
-      ? options
-      : [descriptor.value, ...options];
+    const withCurrent = options.includes(value) ? options : [value, ...options];
     return {
       kind: 'binding' as const,
-      field: descriptor.value,
+      field: value,
       label: descriptor.label,
       options: withCurrent,
       param: descriptor.param,

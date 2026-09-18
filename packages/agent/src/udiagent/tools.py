@@ -225,7 +225,41 @@ ORCHESTRATOR_TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "ListFieldValues",
+            "description": (
+                "Look up the complete list of values in one column. The Column "
+                "Values section of your instructions is only a sample — where it "
+                "says 'showing N of M', or lists no values at all, the rest are "
+                "here. Call this before telling the user a value or a category "
+                "does not exist, and before filtering on a value you have not "
+                "seen spelled out. This does not produce a chart or any visible "
+                "output; you will get the values back and can then continue."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "entity": {
+                        "type": "string",
+                        "description": "Table name, exactly as the schema spells it.",
+                    },
+                    "field": {
+                        "type": "string",
+                        "description": "Column name, exactly as the schema spells it.",
+                    },
+                },
+                "required": ["entity", "field"],
+                "additionalProperties": False,
+            },
+        },
+    },
 ]
+
+#: Tools the orchestrator answers itself and loops on, rather than returning to
+#: the client. They gather context; they are not an outcome of the turn.
+INTERNAL_ORCHESTRATOR_TOOLS = {"ListFieldValues"}
 
 
 # ---------------------------------------------------------------------------
@@ -257,6 +291,16 @@ def function_call_render_visualization(
         data_domains=data_domains,
         model=model,
     )
+    failure = result.get("failure")
+    if failure:
+        # Say so, rather than rendering an empty card. A chart that cannot be
+        # built is a fact the reader can act on — pick a different column, name
+        # a value that exists — and an empty card is not.
+        return {
+            "name": "FreeTextExplain",
+            "arguments": _visualization_failure_args(failure),
+            "meta": result.get("meta"),
+        }
     arguments = {"spec": result["spec"]}
     # The chosen template's user-facing title and one-line summary, with tokens
     # the frontend resolves against the live spec. Costs no output tokens: the
@@ -271,4 +315,46 @@ def function_call_render_visualization(
         "name": "RenderVisualization",
         "arguments": arguments,
         "meta": result.get("meta"),
+    }
+
+
+#: Reader-facing wording per failure reason. The validation errors are already
+#: written for a reader (they name the column and its valid values), so they are
+#: passed through rather than summarised away.
+_FAILURE_OPENERS = {
+    "validation_failed": (
+        "I could not build that chart: the template I picked needs arguments this "
+        "data package cannot satisfy."
+    ),
+    "no_tool_call": (
+        "I could not find a chart template that fits that request against this "
+        "data package."
+    ),
+    "unknown_tool": "I could not build that chart — I picked a template that no longer exists.",
+    "instantiate_failed": (
+        "I could not build that chart: the template failed to resolve against this "
+        "data package. This is a bug in the template rather than in your request."
+    ),
+}
+
+
+def _visualization_failure_args(failure):
+    """FreeTextExplain arguments describing why no chart was produced.
+
+    Built here rather than asked of the model: the reasons are already known and
+    already phrased for a reader, and a second LLM call to restate them is a cost
+    with no information in it.
+    """
+    reason = failure.get("reason")
+    lines = [_FAILURE_OPENERS.get(reason, "I could not build that chart.")]
+    for error in failure.get("errors") or []:
+        lines.append(f"• {error}")
+    lines.append(
+        "Try naming the columns or values you want it to use, or ask for a "
+        "simpler version of the chart."
+    )
+    return {
+        "response_type": "general",
+        "text": lines,
+        "has_structured_elements": False,
     }
