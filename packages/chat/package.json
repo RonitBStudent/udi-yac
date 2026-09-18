@@ -57,6 +57,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:css": "node test/no-global-css-leaks.mjs",
+    "test:ssr": "node test/ssr-import.mjs",
     "test:watch": "vitest",
     "preview": "vite preview"
   },
