@@ -62,10 +62,11 @@ function rewriteExternalRequire(): Plugin {
 // inlines it, so `import 'udi-yac'` threw `document is not defined` during SSR
 // before anything rendered — frozen at publish time, unfixable downstream. Its
 // `default` export (a lookup table) works in every runtime, so resolve to that
-// the way Node would: through the `default` condition, not `browser`.
-const decodeNamedCharacterReferenceUniversal = createRequire(import.meta.url).resolve(
-  'decode-named-character-reference',
-);
+// the way Node would: through the `default` condition, not `browser`. It is a
+// declared devDependency for this reason — resolving a transitive dependency
+// from here would only work while pnpm hoists it.
+const universalDecodeNamedCharacterReference = () =>
+  createRequire(import.meta.url).resolve('decode-named-character-reference');
 
 export default defineConfig(({ mode }) => ({
   // Lib mode uses './' so any emitted asset URL is relative to the stylesheet
@@ -105,7 +106,7 @@ export default defineConfig(({ mode }) => ({
         ? [
             {
               find: /^decode-named-character-reference$/,
-              replacement: decodeNamedCharacterReferenceUniversal,
+              replacement: universalDecodeNamedCharacterReference(),
             },
           ]
         : []),
